@@ -11,6 +11,9 @@
 #include <unistd.h>
 
 #include "logging.h"
+#include "utility_funcs.c"
+
+#define BUFFER_SIZE (128)
 
 /*need to:
 create a fifo (char **argv)
@@ -20,9 +23,43 @@ listen to the fifo for output
 print the output with "fprintf(stdout, "%s\n", message);"*/
 
 int main(int argc, char **argv) {
-    (void)argc;
-    (void)argv;
-    fprintf(stderr, "usage: sub <register_pipe_name> <box_name>\n");
-    WARN("unimplemented"); // TODO: implement
-    return -1;
+
+    //*CREATE SESSION PIPE
+    char *session_pipe = argv[1];
+
+	// remove pipe if it does exist //?I don't know if this is what we should do here
+    if (unlink(session_pipe) != 0 && errno != ENOENT) {
+        fprintf(stderr, "[ERR]: unlink(%s) failed: %s\n", session_pipe,
+                strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    // create pipe
+    if (mkfifo(session_pipe, 0640) != 0) {
+        fprintf(stderr, "[ERR]: mkfifo failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    // open pipe for writing
+    // this waits for someone to open it for reading
+    int tx = open(session_pipe, O_WRONLY);
+    if (tx == -1) {
+        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    //*SEND REQUEST TO THE SERVER
+    int tx = open(SERVER_FIFO, O_RDONLY);
+    if (tx == -1) {
+        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    send_request(1, );
+
+    //*print MESSAGE
+    print_msg( );
+
+	close(tx);
+	unlink(argv);
 }
