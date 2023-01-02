@@ -1,0 +1,133 @@
+Analise do enunciado do segundo proj de SO:
+
+Sistema de blog, com um servidor central (broker), criadores (publishers) e leitores (subscritores).
+	Cada blog (caixa) pode ter um publisher e vários escritores. As caixas é como se fossem um tipo de ficheiro do TFS.
+	Cada publisher pode colucar mensagens na caixa que lhe pertence.
+	Cada subscritor pode ler a caixa a que está subscrito.
+	Cada caixa pode ser criada ou removida por managers.
+	Managers podem listar todas as caixas.
+
+SERVIDOR:
+O servidor pode ser inicializado com "mbroker <pipename> <max_sessions>", em que pipename é um named pipe que o servidor cria no inicio.
+	Os processos cliente (todos) comunicam com o servidor atravez deste pipe. (para iniciar sessões ou para as coisas do manager). (ver lab 6)
+	Os clientes podem pedir ao servidor para "iniciar sessão".
+		O cliente passa um pipe previamente criado por ele para o servidor. (ver lab 7)
+		O cliente só pode ser publisher (envia dados pelo pipe) ou subscritor (recebe dados pelo pipe).
+			O *cliente define o nome do pipe de cada sessão para não haver conflitos entre nomes internamente. (~não percebi se é o servidor que define o nome do pipe se o cliente...~)
+	Acontece "fim de sessão" se:
+		O cliente feixa o pipe e sinaliza fim de sessaão.
+			O pipe da sessão deve ser removido do sistema de ficheiros depois do fim de sessão.
+		Um gestor remove a caixa (deve de alguma forma sinalizar o fim de sessão).
+			O pipe da sessão deve ser preveamente removido do sistema de ficheiros.
+	O número máximo de sessões abertas é max_sessions.
+	O servidor é inicialisado com max_sessions + 1 threads:
+		A main thread, que inicia sessões com as funções de producer-consumer.h. (recebe pedidos e encaminha os cliente para as subthreads)
+		As worker threads que comunicam entre as caixas e os clientes (lêm das caixas -> clientes, subscritores /lêm cos clientes -> caixas, publishers),
+			Podemos fazer que as 
+	As funções de producer-consumer.h evitam espera ativa entre subscritores e publishers.
+	
+LISTA PRODUCER-CONSUMER:
+	Gere os pedidos ao servidor, destribui cada operação por uma worker thread sem que hajam esperas ativas nem exceço de escritores ou leitores.
+	
+PUBLISHER:
+O publisher pode ser inicializado com "pub <register_pipe> <pipe_name> <box_name>", em que (register pipe) é o pipe que vai usar para escrever e (pipe name) é o pipe do servidor.
+	A ligação pode ser regeitada, dando um erro.
+	Recebe mensagens do stdin (teclado). (ver lab 7)
+	Envia as "mensagens" para o pipe da sessão (~pode ter de ser trocado pelo stdout? ainda n sei como fazer~).
+	Se um publisher receber um EOF (ctrl-D) fecha o pipe da sessão (e dá sinal de fim de sessão). (ver lab 8)
+
+FUNÇÕES AUXILIARES:
+{
+[termina a sessão = fecha o pipe da sessão e sinaliza fim de sessão.  Deviamos fazer uma função própria para isto,]
+ou
+[sinalisa fim de sessão -> fecha pipe ?? se o manager só conseguir fazer um deles)
+	
+MENSAGENS:
+As mensagens têm um formato especifico:
+	Cada mensagem corresponde a uma linha escrita no teclado (até se clicar enter).
+	Cada mensagem deve ser truncada num dado valor máximo (adiciona-se um "|").
+	O ultimo carater de cada mensagem deve ser /0.
+}
+
+SUBESCRITOR:
+O subescritor pode ser inicializado com "sub <register_pipe> <pipe_name> <box_name>", em que os parametros são iguais aos do publisher.
+	Recebe todas as mensagens presentes na caixa (~pode ter de se trocar o stdin pelo pipe da sessão? ainda n sei como fazer~).
+	Imprime todas as mensagens em stdout (ecrã normal).
+	Fica à espera de novas mensagens.
+	Imprime novas mensagens.
+	Se o subscritor receber SIGINT (ctrl-C) termina sessão e imprime em stdout (ecrã normal) o número de mensagens recebidas durante a sessão.
+	
+MANAGER:
+O manager pode ser inicializado com:	      "manager <register_pipe> <pipe_name> create <box_name>
+								manager <register_pipe> <pipe_name> remove <box_name>
+								manager <register_pipe> <pipe_name> list"
+	Faz o pedido ao servidor.
+	Recebe o resultado pelo pipe da sessão.
+	Imprime o resultado.
+	
+PROTOCOLO PARTILHA MENSAGENS:
+Para partilharem mensagens, o servidor e os clientes utilizão um padrão rigido:
+	"|" denota a concatenação de elementos de uma mensagem.
+	Todas as mensagens de pedidos de operação (para o main pipe do servidor) iniciam-se por um codigo que identifica a operação OP_CODE.
+	As strings com o nome dos pipes das sessões têm tamanho fixo indicado na própria mensagem.
+		Se o nome for inferior ao tamanho indicado, os carateres a menos devem ser \0.
+	Padrões dos códigos:
+		Publisher:
+			Registo: "[ code = 1 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]".
+			Envia mensagens do tipo: "[ code = 9 (uint8_t) ] | [ message (char[1024]) ]".
+		Subescritor:
+			Registo: "[ code = 2 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]".
+			Recebe mensagens do tipo: "[ code = 10 (uint8_t) ] | [ message (char[1024]) ]".
+		Manager:
+			Criação de caixa: "[ code = 3 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]".
+			Pedido de remoção de caixa: "[ code = 5 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]".
+			Pedido de listagem de caixas: "[ code = 7 (uint8_t) ] | [ client_named_pipe_path (char[256]) ]".
+		Respostas (ao manager):
+			Resposta ao pedido de criação de caixa: "[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error message (char[1024]) ]".
+			Resposta ao pedido de remoção de caixa: "[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error message (char[1024]) ]".
+			O return code deve ser 0 se a caixa foi criada com sucesso, e -1 em caso de erro.
+			Em caso de erro a mensagem de erro é enviada, em caso contrário, fica simplesmente inicializada com \0.
+			A resposta à listagem de caixas vem em várias mensagens, do seguinte tipo: 
+				"[ code = 8 (uint8_t) ] | [ last (uint8_t) ] | [ box_name (char[32]) ] | [ box_size (uint64_t) ] | [ n_publishers (uint64_t) ] | [ n_subscribers (uint64_t) ]".
+			O byte last é 1 se esta for a última caixa da listagem e a 0 em caso contrário.
+			Box_size é o tamanho (em bytes) da caixa.
+			N_publisher (0 ou 1) indica se existe um publisher ligado à caixa naquele momento.
+			N_subscriber o número de subscritores da caixa naquele momento.
+			
+REQUESITOS DE IMPLEMENTAÇÃO:
+	Clientes:
+		O servidor é inicialisado já com o numero máximo de threads, que ficam à espera de receberem uma sessão.
+		A main thread coloca os pedidos na lista de espera produtor-consumidor (com as funçẽos de producer-consumer.h).
+		Quando uma sessão termina, a thread volta a estar em espera.
+	Caixas de armazenamento:
+		Cada caixa corresponde a um ficheiro no TFS.
+		Devem ser utilizadas "variáveis de condição" para evitar esperas ativas dos subscribers pelos publishers. (para o caso de haverem várias threads a trabalhar na mesma caixa)
+	Formatação de mensagens:
+		Para uniformizar o output dos diversos comandos (para o stdout), é fornecido o formato com que estas devem ser impressas. (?????)
+	Fila Produtor-Consumidor:
+		Existirão testes que usam apenas a interface descrita no producer-consumer.h.
+	Formas de impreção de mensagens:
+		Mensagens do subscritor: "fprintf(stdout, "%s\n", message);".
+		Listagem de caixas: "fprintf(stdout, "%s %zu %zu %zu\n", box_name, box_size, n_publishers, n_subscribers);".
+	Espera Ativa:
+		Nunca devem ser usados mecanismos de espera ativa.
+
+SUGESTÕES DE IMPLEMENTAÇÃOS:
+	Implementar as interfaces de linha de comando (CLI) dos clientes;
+	Implementar a serialização do protocolo de comunicação;
+	Implementar uma versão básica do mbroker, onde só existe uma thread que, em ciclo, a) recebe um pedido de registo; b) trata a sessão correspondente; e c) volta a ficar à espera do pedido de registo;
+	Implementar a fila produtor-consumidor;
+	Utilizar a fila produtor-consumidor para gerir e encaminhar os pedidos de registo para as worker threads.
+	
+	
+	
+ESTROTURA DO PROJETO:
+	É um pouco parecido com java na medida em que cada componente está na sua própria pasta. Código relacionado ao funcionamento interno do servidor, por exemplo, fica todo dentro da pasta mbroker, e o mesmo para publisher, subescritores e para a lista de espera producer-consumer e para funções utilitárias.
+	De tudo, a unica coisa em que não temos de mecher é no TFS.
+	Só a lista de espera é que precisa de um .h, porque ela é que faz a comunicação entre tudo o resto e o servidor. Assim, ele importa o mbroker e o resto importa a lista de espera.
+	
+
+(Não recordando exatamente o que era para fazer, escrevo somário)
+MBROKER:
+	
+	
