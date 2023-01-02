@@ -25,7 +25,7 @@ send it to the fifo*/
 
 #define BUFFER_SIZE (128)
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv, char *box) {
 
     //*CREATE SESSION PIPE
     char *session_pipe = argv[1];
@@ -58,10 +58,11 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    send_request(1, );
+    send_request(1, session_pipe, box);
 
     //*WRITE MESSAGE
-    send_msg();
+                                    //TODO have to add safety for ctrl + D
+    
 
 	close(tx);
 	unlink(argv);

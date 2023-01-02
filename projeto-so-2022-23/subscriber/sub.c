@@ -22,44 +22,58 @@ send request to server (int argc)
 listen to the fifo for output
 print the output with "fprintf(stdout, "%s\n", message);"*/
 
-int main(int argc, char **argv) {
-
-    //*CREATE SESSION PIPE
-    char *session_pipe = argv[1];
+int main(int argc, char **argv, char *box) {
+	//*CREATE SESSION PIPE
+	char *session_pipe = argv[1];
 
 	// remove pipe if it does exist //?I don't know if this is what we should do here
-    if (unlink(session_pipe) != 0 && errno != ENOENT) {
-        fprintf(stderr, "[ERR]: unlink(%s) failed: %s\n", session_pipe,
-                strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	if (unlink(session_pipe) != 0 && errno != ENOENT) {
+		fprintf(stderr, "[ERR]: unlink(%s) failed: %s\n", session_pipe, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    // create pipe
-    if (mkfifo(session_pipe, 0640) != 0) {
-        fprintf(stderr, "[ERR]: mkfifo failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	// create pipe
+	if (mkfifo(session_pipe, 0640) != 0) {
+		fprintf(stderr, "[ERR]: mkfifo failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    // open pipe for writing
-    // this waits for someone to open it for reading
-    int tx = open(session_pipe, O_WRONLY);
-    if (tx == -1) {
-        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	// open pipe for reading
+	// this waits for someone to open it for reading
+	int tx = open(session_pipe, O_RDONLY);
+	if (tx == -1) {
+		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    //*SEND REQUEST TO THE SERVER
-    int tx = open(SERVER_FIFO, O_RDONLY);
-    if (tx == -1) {
-        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	//*SEND REQUEST TO THE SERVER
+	int rx = open(SERVER_FIFO, O_RDONLY);
+	if (rx == -1) {
+		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    send_request(1, );
+	send_request(2, session_pipe, box);
 
-    //*print MESSAGE
-    print_msg( );
+	//* PRINT MESSAGE
+	ssize_t ret;                                //TODO have to add safety for ctrl + C
+	char buffer[BUFFER_SIZE];
+	while (true) {
+		ret = read(rx, buffer, BUFFER_SIZE - 1);
+		if (ret == 0) {
+			// ret == 0 signals EOF
+			fprintf(stderr, "[INFO]: pipe closed\n");
+			break;
+		} else if (ret == -1) {
+			// ret == -1 signals error
+			fprintf(stderr, "[ERR]: read failed: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		buffer[ret] = 0;
+		fputs(buffer, stdout);
+	}
 
 	close(tx);
+    close(rx);
 	unlink(argv);
 }
