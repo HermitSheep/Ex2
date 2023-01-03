@@ -22,7 +22,7 @@ send request to server (int argc)
 listen to the fifo for output
 print the output with "fprintf(stdout, "%s\n", message);"*/
 
-int main(int argc, char **argv, char *box) {
+int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box name
 	//*CREATE SESSION PIPE
 	char *session_pipe = argv[1];
 
@@ -38,25 +38,25 @@ int main(int argc, char **argv, char *box) {
 		exit(EXIT_FAILURE);
 	}
 
-	// open pipe for reading
-	// this waits for someone to open it for reading
-	int tx = open(session_pipe, O_RDONLY);
-	if (tx == -1) {
-		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+    //*SEND REQUEST TO THE SERVER
+    int rx = open(argv, O_WRONLY);
+    if (rx == -1) {
+        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
-	//*SEND REQUEST TO THE SERVER
-	int rx = open(SERVER_FIFO, O_RDONLY);
-	if (rx == -1) {
-		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+    send_request(1, session_pipe, box);
 
-	send_request(2, session_pipe, box);
+	 // open pipe for reading
+    // this waits for someone to open it for reading
+    int tx = open(session_pipe, O_RDONLY);
+    if (tx == -1) {
+        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
 	//* PRINT MESSAGE
-	ssize_t ret;                                //TODO have to add safety for ctrl + C
+	ssize_t ret;  // TODO have to add safety for ctrl + C
 	char buffer[BUFFER_SIZE];
 	while (true) {
 		ret = read(rx, buffer, BUFFER_SIZE - 1);
@@ -74,6 +74,6 @@ int main(int argc, char **argv, char *box) {
 	}
 
 	close(tx);
-    close(rx);
+	close(rx);
 	unlink(argv);
 }

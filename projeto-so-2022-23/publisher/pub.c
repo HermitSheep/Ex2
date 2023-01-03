@@ -17,15 +17,15 @@ Based off of named_pipes_sender from the 7th lab
 */
 
 /*need to:
-create a fifo (char **argv)
-send request to server (int argc)
+create a fifo (char **argv)             check
+send request to server (int argc)   check
 
-listen for input
-send it to the fifo*/
+format messages
+send them to the fifo*/
 
 #define BUFFER_SIZE (128)
 
-int main(int argc, char **argv, char *box) {
+int main(char* argc, char **argv, char *box) {
 
     //*CREATE SESSION PIPE
     char *session_pipe = argv[1];
@@ -43,6 +43,15 @@ int main(int argc, char **argv, char *box) {
         exit(EXIT_FAILURE);
     }
 
+    //*SEND REQUEST TO THE SERVER
+    int rx = open(argv, O_WRONLY);
+    if (rx == -1) {
+        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    send_request(1, session_pipe, box);
+
     // open pipe for writing
     // this waits for someone to open it for reading
     int tx = open(session_pipe, O_WRONLY);
@@ -51,19 +60,22 @@ int main(int argc, char **argv, char *box) {
         exit(EXIT_FAILURE);
     }
 
-    //*SEND REQUEST TO THE SERVER
-    int tx = open(SERVER_FIFO, O_RDONLY);
-    if (tx == -1) {
-        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    send_request(1, session_pipe, box);
-
     //*WRITE MESSAGE
                                     //TODO have to add safety for ctrl + D
-    
+    size_t len;
+    size_t written = 0;
+    char size
 
+    while (written < len) {
+        ssize_t ret = write(tx, str + written, len - written);
+        if (ret < 0) {
+            fprintf(stderr, "[ERR]: write failed: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+
+        written += ret;
+    }
+    
 	close(tx);
 	unlink(argv);
 }
