@@ -60,6 +60,7 @@ int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box 
 	size_t len = 1;
 	char line[256];
 	bool end = false;
+	int received_messages = 0;
 	while (!end) {
 		//*READ
 		if (fgets(line, 3, session_pipe) == NULL) {	//ignore first 3 characters (10|)
@@ -70,10 +71,15 @@ int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box 
 			if (ferror(session_pipe)) ERROR("Failed to read from user input.");
 			if (feof(session_pipe)) end = true;
 		}
+
 		//*PRINT LINE
 		fputs(line, stdout);
+
+		received_messages++;
 	}
 
+	fprintf(stdout, "%d messages  were received.\n");
+	
 	close(tx);
 	close(rx);
 	unlink(argv);
