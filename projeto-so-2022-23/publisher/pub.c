@@ -2,9 +2,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -26,7 +26,7 @@ send them to the fifo*/
 
 #define BUFFER_SIZE (128)
 
-int main(char *argc, char **argv, char *box) {
+int main(char *argc, char **argv, char *box) {  // TODO check if box already has a publisher
 	//*CREATE SESSION PIPE
 	char *session_pipe = argv[1];
 
@@ -43,7 +43,7 @@ int main(char *argc, char **argv, char *box) {
 	}
 
 	//*SEND REQUEST TO THE SERVER
-	int rx = open(argv, O_WRONLY);
+	int rx = open(argc, O_WRONLY);
 	if (rx == -1) {
 		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
@@ -60,20 +60,29 @@ int main(char *argc, char **argv, char *box) {
 	}
 
 	//*WRITE MESSAGE
-	// TODO have to add safety for ctrl + D
 	size_t len = 1;
-	size_t written = 0;
-	char str;
-	while (written < len) {
-		str = getchar();
-		if (str = "\n")  // when user presses enter writes \0
-			str = "\0";
-		ssize_t ret = write(tx, str + written, len - written);
+	char line[256];
+	bool end = false;
+	while (!end) {
+		//*PLACE CODE
+		uint8_t code = M_PUB;
+		sprintf(line, "%ld|", code);	//?idk if this works
+
+		//*CHECK IF TERMINATION SIGNAL GIVEN
+		if (fgets(line[2], sizeof line, stdin) == NULL) end = true;	 //?idk if this works
+
+		//*CLEAR EMPTY SPACE IN LINE
+		len = strlen(line) + 2;
+		if (len < 256)
+			memset(line[len - 1], "\0", 256 - len);  //?idk if this works, but i sure hope it does
+			                                         //(-1 is to remove the final \n. I assume only the last \n needs this)
+
+		//*SEND LINE TO SERVER
+		ssize_t ret = write(tx, line, len);
 		if (ret < 0) {
 			fprintf(stderr, "[ERR]: write failed: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		written += ret;
 	}
 
 	close(tx);

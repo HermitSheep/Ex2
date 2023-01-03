@@ -40,7 +40,7 @@ int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box 
 	}
 
     //*SEND REQUEST TO THE SERVER
-    int rx = open(argv, O_WRONLY);
+    int rx = open(argc, O_WRONLY);
     if (rx == -1) {
         fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
         exit(EXIT_FAILURE);

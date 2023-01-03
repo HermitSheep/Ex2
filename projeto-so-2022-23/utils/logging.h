@@ -10,6 +10,19 @@ typedef enum {
 	LOG_VERBOSE = 2,
 } log_level_t;
 
+typedef enum {		//they're all meant to be unit8_t numbers
+	R_PUB = 1,	//REGISTER PUBLISHER
+	R_SUB = 2,	//REGISTER SUBSCRIBER
+	C_CAIXA = 3,	//CREATE BOX
+	R_C_BOX = 4,	//RESPONSE TO CREATE BOX
+	D_BOX = 5,	//DELETE BOX
+	R_D_BOX = 6,	//RESPONSE TO DELETE BOX
+	L_BOX = 7,	//LIST BOXES
+	R_L_BOX = 8,	//RESPONSE TO LIST BOXES
+	M_PUB = 9, 	//MESSAGE from PUBLISHER to server
+	M_SUB = 10,	//MESSAGE from server to SUBSCRIBER
+} codes;
+
 void set_log_level(log_level_t level);
 extern log_level_t g_level;
 
