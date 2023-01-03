@@ -28,7 +28,10 @@ send it to the fifo*/
 int main(int argc, char **argv) {
 
     //*CREATE SESSION PIPE
-    char *session_pipe = argv[1];
+    char *session_pipe = argv[1];  /*mode write*/
+    
+    //*CREATE BOX PIPE NAME
+    char *box_name = argv[1];
 
     // remove pipe if it does exist //?I don't know if this is what we should do
     // here
@@ -59,7 +62,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    send_request(1, session_pipe, );
+    send_request(1, session_pipe[MAX_SESSION_PIPE], box_name[MAX_BOX_NAME]);
 
     //*WRITE MESSAGE
     send_msg();

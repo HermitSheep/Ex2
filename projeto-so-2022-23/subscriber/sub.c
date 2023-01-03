@@ -27,6 +27,9 @@ int main(int argc, char **argv) {
     //*CREATE SESSION PIPE
     char *session_pipe = argv[1];
 
+    //*CREATE BOX PIPE NAME
+    char *box_name = argv[1];
+
 	// remove pipe if it does exist //?I don't know if this is what we should do here
     if (unlink(session_pipe) != 0 && errno != ENOENT) {
         fprintf(stderr, "[ERR]: unlink(%s) failed: %s\n", session_pipe,
@@ -55,7 +58,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    send_request(2, session_pipe, );
+    send_request(2, session_pipe[MAX_SESSION_PIPE],box_name[MAX_BOX_NAME]);
 
     //*print MESSAGE
     print_msg( );
