@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    send_request(1, );
+    send_request(2, session_pipe, );
 
     //*print MESSAGE
     print_msg( );

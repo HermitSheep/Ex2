@@ -35,6 +35,8 @@ int main(int argc, char **argv) {
     int fd = open("olatemporario", O_WRONLY);
     
 
+    int fd = open("olatemporario", O_RDONLY);
+
 
 
 

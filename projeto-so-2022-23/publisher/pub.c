@@ -30,7 +30,8 @@ int main(int argc, char **argv) {
     //*CREATE SESSION PIPE
     char *session_pipe = argv[1];
 
-	// remove pipe if it does exist //?I don't know if this is what we should do here
+    // remove pipe if it does exist //?I don't know if this is what we should do
+    // here
     if (unlink(session_pipe) != 0 && errno != ENOENT) {
         fprintf(stderr, "[ERR]: unlink(%s) failed: %s\n", session_pipe,
                 strerror(errno));
@@ -58,11 +59,10 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    send_request(1, );
+    send_request(1, session_pipe, );
 
     //*WRITE MESSAGE
     send_msg();
-
-	close(tx);
-	unlink(argv);
+    close(tx);
+    unlink(argv);
 }
