@@ -66,16 +66,18 @@ int main(char *argc, char **argv, char *box) {  // TODO check if box already has
 	while (!end) {
 		//*PLACE CODE
 		uint8_t code = M_PUB;
-		sprintf(line, "%ld|", code);	//?idk if this works
+		sprintf(line, "%ld|", code);  //?idk if this works
 
-		//*CHECK IF TERMINATION SIGNAL GIVEN
-		if (fgets(line[2], sizeof line, stdin) == NULL) end = true;	 //?idk if this works
+		//*READS
+		if (fgets(line[2], sizeof(line), stdin) == NULL) {  //?idk if this works	(2 because of the code (9) and the |)
+			if (ferror(stdin)) ERROR("Failed to read from user input.");
+			if (feof(stdin)) end = true;
+		}
 
-		//*CLEAR EMPTY SPACE IN LINE
+		//*CLEAR EXTRA SPACE IN LINE
 		len = strlen(line) + 2;
-		if (len < 256)
-			memset(line[len - 1], "\0", 256 - len);  //?idk if this works, but i sure hope it does
-			                                         //(-1 is to remove the final \n. I assume only the last \n needs this)
+		if (len < 256) memset(line[len - 1], "\0", 256 - len);  //?idk if this works, but i sure hope it does
+			                 //(-1 is to remove the final \n. I assume only the last \n needs this)
 
 		//*SEND LINE TO SERVER
 		ssize_t ret = write(tx, line, len);

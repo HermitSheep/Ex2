@@ -57,21 +57,21 @@ int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box 
     }
 
 	//* PRINT MESSAGE
-	ssize_t ret;  // TODO have to add safety for ctrl + C
-	char buffer[BUFFER_SIZE];
-	while (true) {
-		ret = read(rx, buffer, BUFFER_SIZE - 1);
-		if (ret == 0) {
-			// ret == 0 signals EOF
-			fprintf(stderr, "[INFO]: pipe closed\n");
-			break;
-		} else if (ret == -1) {
-			// ret == -1 signals error
-			fprintf(stderr, "[ERR]: read failed: %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
+	size_t len = 1;
+	char line[256];
+	bool end = false;
+	while (!end) {
+		//*READ
+		if (fgets(line, 3, session_pipe) == NULL) {	//ignore first 3 characters (10|)
+			if (ferror(session_pipe)) ERROR("Failed to read from user input.");
+			end = true;
 		}
-		buffer[ret] = 0;
-		fputs(buffer, stdout);
+		if (fgets(line, sizeof(line), session_pipe) == NULL) {  //?idk if this works	(2 because of the code (9) and the |)
+			if (ferror(session_pipe)) ERROR("Failed to read from user input.");
+			if (feof(session_pipe)) end = true;
+		}
+		//*PRINT LINE
+		fputs(line, stdout);
 	}
 
 	close(tx);

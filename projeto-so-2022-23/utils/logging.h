@@ -28,12 +28,21 @@ extern log_level_t g_level;
 
 /*debugging tools*/
 
-//prints a message and a position in the program
+//prints a message and the position in the program
 #define INFO(...)                                                                           \
 	do {                                                                                    \
 		char buf[2048];                                                                     \
 		snprintf(buf, 2048, __VA_ARGS__);                                                   \
 		fprintf(stderr, "[INFO]:  %s:%d :: %s :: %s\n", __FILE__, __LINE__, __func__, buf); \
+	} while (0);
+
+//prints an error message and the position in the program
+#define ERROR(...)                                                                           \
+	do {                                                                                    \
+		char buf[2048];                                                                     \
+		snprintf(buf, 2048, __VA_ARGS__);                                                   \
+		fprintf(stderr, "[ERROR]:  %s:%d :: %s :: %s :: %s\n", __FILE__, __LINE__, __func__, strerror(errno), buf); \
+		exit(EXIT_FAILURE); \
 	} while (0);
 
 //prints the position on the program and quits it
@@ -80,7 +89,7 @@ extern log_level_t g_level;
 	({                                                                                     \
 		int __val = (X);                                                                   \
 		(__val == -1 ? ({                                                                  \
-			fprintf(stderr, "ERROR (" __FILE__ ":%d) -- %s\n", __LINE__, strerror(errno)); \
+			fprintf(stderr, "[ERROR] (" __FILE__ ":%d) -- %s\n", __LINE__, strerror(errno)); \
 			exit(-1);                                                                      \
 			-1;                                                                            \
 		})                                                                                 \
