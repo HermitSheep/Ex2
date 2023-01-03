@@ -25,57 +25,56 @@ send them to the fifo*/
 
 #define BUFFER_SIZE (128)
 
-int main(char* argc, char **argv, char *box) {
-
-    //*CREATE SESSION PIPE
-    char *session_pipe = argv[1];
+int main(char *argc, char **argv, char *box) {
+	//*CREATE SESSION PIPE
+	char *session_pipe = argv[1];
 
 	// remove pipe if it does exist //?I don't know if this is what we should do here
-    if (unlink(session_pipe) != 0 && errno != ENOENT) {
-        fprintf(stderr, "[ERR]: unlink(%s) failed: %s\n", session_pipe,
-                strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	if (unlink(session_pipe) != 0 && errno != ENOENT) {
+		fprintf(stderr, "[ERR]: unlink(%s) failed: %s\n", session_pipe, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    // create pipe
-    if (mkfifo(session_pipe, 0640) != 0) {
-        fprintf(stderr, "[ERR]: mkfifo failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	// create pipe
+	if (mkfifo(session_pipe, 0640) != 0) {
+		fprintf(stderr, "[ERR]: mkfifo failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    //*SEND REQUEST TO THE SERVER
-    int rx = open(argv, O_WRONLY);
-    if (rx == -1) {
-        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	//*SEND REQUEST TO THE SERVER
+	int rx = open(argv, O_WRONLY);
+	if (rx == -1) {
+		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    send_request(1, session_pipe, box);
+	send_request(1, session_pipe, box);
 
-    // open pipe for writing
-    // this waits for someone to open it for reading
-    int tx = open(session_pipe, O_WRONLY);
-    if (tx == -1) {
-        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	// open pipe for writing
+	// this waits for someone to open it for reading
+	int tx = open(session_pipe, O_WRONLY);
+	if (tx == -1) {
+		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    //*WRITE MESSAGE
-                                    //TODO have to add safety for ctrl + D
-    size_t len;
-    size_t written = 0;
-    char size
+	//*WRITE MESSAGE
+	// TODO have to add safety for ctrl + D
+	size_t len = 1;
+	size_t written = 0;
+	char str;
+	while (written < len) {
+		str = getchar();
+		if (str = "\n")  // when user presses enter writes \0
+			str = "\0";
+		ssize_t ret = write(tx, str + written, len - written);
+		if (ret < 0) {
+			fprintf(stderr, "[ERR]: write failed: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		written += ret;
+	}
 
-    while (written < len) {
-        ssize_t ret = write(tx, str + written, len - written);
-        if (ret < 0) {
-            fprintf(stderr, "[ERR]: write failed: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
-        }
-
-        written += ret;
-    }
-    
 	close(tx);
 	unlink(argv);
 }
