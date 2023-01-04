@@ -22,13 +22,10 @@ send request to server (int argc)
 listen to the fifo for output
 print the output with "fprintf(stdout, "%s\n", message);"*/
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv, char *box_name) {
 
     //*CREATE SESSION PIPE
     char *session_pipe = argv[1];
-
-    //*CREATE BOX PIPE NAME
-    char *box_name = argv[1];
 
 	// remove pipe if it does exist //?I don't know if this is what we should do here
     if (unlink(session_pipe) != 0 && errno != ENOENT) {
@@ -36,6 +33,14 @@ int main(int argc, char **argv) {
                 strerror(errno));
         exit(EXIT_FAILURE);
     }
+
+
+    /*The named file already exists.*/
+    if (mkfifo("olatemporario", 0640) == -1 && errno != EEXIST ){
+        fprintf(stderr, "[ERR]: mkfifo is already exist failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
 
     // create pipe
     if (mkfifo(session_pipe, 0640) != 0) {
@@ -58,7 +63,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    send_request(2, session_pipe[MAX_SESSION_PIPE],box_name[MAX_BOX_NAME]);
+    send_request(2, session_pipe,box_name);
 
     //*print MESSAGE
     print_msg( );

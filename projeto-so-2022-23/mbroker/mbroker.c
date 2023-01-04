@@ -24,22 +24,6 @@ manager: accomplish request (...)
 int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
-
-    if (mkfifo("olatemporario", 0640) == -1){
-        if (errno != EEXIST){       /*The named file already exists.*/
-            printf("Não foi possível criar fifo file\n");
-            return -1;
-        }
-    }
-
-    int fd = open("olatemporario", O_WRONLY);
-    
-
-    int fd = open("olatemporario", O_RDONLY);
-
-
-
-
     fprintf(stderr, "usage: mbroker <pipename>\n");
     WARN("unimplemented"); // TODO: implement
     return -1;

@@ -18,6 +18,7 @@ session fifo*/
 #define SERVER_FIFO "fifo.pipe"
 #define MAX_SESSION_PIPE 256
 #define MAX_BOX_NAME 32
+#define MAX_ERROR_MESSAGE 1024
 
 // Helper function to send messages
 // Retries to send whatever was not sent in the beginning
