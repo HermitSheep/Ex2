@@ -30,7 +30,7 @@ static int sig_handler(int sig) {
 	return;
 }
 
-int main(char *argc, char **argv, char *box) {  // server fifo, session fifo, box name
+int main(char *argc, char **argv, char *box_name) {	//server fifo, session fifo, box name
 	//*CREATE SESSION PIPE
 	char *session_pipe = argv[1];
 
@@ -40,11 +40,27 @@ int main(char *argc, char **argv, char *box) {  // server fifo, session fifo, bo
 		exit(EXIT_FAILURE);
 	}
 
-	// create pipe
-	if (mkfifo(session_pipe, 0640) != 0) {
-		fprintf(stderr, "[ERR]: mkfifo failed: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+
+    /*The named file already exists.*/
+    if (mkfifo("olatemporario", 0640) == -1 && errno != EEXIST ){
+        fprintf(stderr, "[ERR]: mkfifo is already exist failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+
+    // create pipe
+    if (mkfifo(session_pipe, 0640) != 0) {
+        fprintf(stderr, "[ERR]: mkfifo failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    // open pipe for writing
+    // this waits for someone to open it for reading
+    int tx = open(session_pipe, O_WRONLY);
+    if (tx == -1) {
+        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
 	//*SEND REQUEST TO THE SERVER
 	int rx = open(argc, O_WRONLY);
@@ -53,7 +69,7 @@ int main(char *argc, char **argv, char *box) {  // server fifo, session fifo, bo
 		exit(EXIT_FAILURE);
 	}
 
-	send_request(1, session_pipe, box);
+    send_request(R_SUB, session_pipe[MAX_SESSION_PIPE], box_name[MAX_BOX_NAME]);
 
 	// open pipe for reading
 	// this waits for someone to open it for reading
