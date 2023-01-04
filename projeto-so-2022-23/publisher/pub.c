@@ -27,48 +27,31 @@ send them to the fifo*/
 
 #define BUFFER_SIZE (128)
 
-int main(int argc, char **argv, char *box_name) {// TODO check if box already has a publisher
+int main(char *server_pipe, char *session_pipe, char *box_name) {// TODO check if box already has a publisher
 
-    //*CREATE SESSION PIPE
-    char *session_pipe = argv[1];  
-
-    // remove pipe if it does exist //?I don't know if this is what we should do
-    // here
+	/*	//* think the one bellow makes more sense
+    // remove pipe if it does exist
     if (unlink(session_pipe) != 0 && errno != ENOENT) {
         fprintf(stderr, "[ERR]: unlink(%s) failed: %s\n", session_pipe,
                 strerror(errno));
         exit(EXIT_FAILURE);
     }
-
+	*/
 
     /*The named file already exists.*/
-    if (mkfifo("olatemporario", 0640) == -1 && errno != EEXIST ){
-        fprintf(stderr, "[ERR]: mkfifo is already exist failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    // create pipe
-    if (mkfifo(session_pipe, 0640) != 0) {
-        fprintf(stderr, "[ERR]: mkfifo failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+    if (mkfifo(session_pipe, 0640) == -1 && errno != EEXIST ) 
+		ERROR("Session pipe already exists.");
 
 	//*SEND REQUEST TO THE SERVER
-	int rx = open(argc, O_WRONLY);
-	if (rx == -1) {
-		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+	int rx = open(server_pipe, O_WRONLY);
+	if (rx == -1)  ERROR("Open server pipe failed");
 
 	send_request(R_PUB, session_pipe[MAX_SESSION_PIPE], box_name[MAX_BOX_NAME]);
 
 	// open pipe for writing
 	// this waits for someone to open it for reading
 	int tx = open(session_pipe, O_WRONLY);
-	if (tx == -1) {
-		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+	if (tx == -1)  ERROR("Open session pipe failed.");
 
 	//*WRITE MESSAGE
 	size_t len = 1;
@@ -92,12 +75,9 @@ int main(int argc, char **argv, char *box_name) {// TODO check if box already ha
 
 		//*SEND LINE TO SERVER
 		ssize_t ret = write(tx, line, len);
-		if (ret < 0) {
-			fprintf(stderr, "[ERR]: write failed: %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
+		if (ret < 0)  ERROR("Write failed.");
 	}
 
 	close(tx);
-	unlink(argv);
+	unlink(session_pipe);
 }
