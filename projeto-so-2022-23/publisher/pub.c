@@ -60,7 +60,7 @@ int main(int argc, char **argv, char *box_name) {// TODO check if box already ha
 		exit(EXIT_FAILURE);
 	}
 
-	send_request(1, session_pipe[MAX_SESSION_PIPE], box_name[MAX_BOX_NAME]);
+	send_request(R_PUB, session_pipe[MAX_SESSION_PIPE], box_name[MAX_BOX_NAME]);
 
 	// open pipe for writing
 	// this waits for someone to open it for reading
