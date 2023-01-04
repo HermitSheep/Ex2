@@ -30,7 +30,7 @@ LISTA PRODUCER-CONSUMER:
 	Gere os pedidos ao servidor, destribui cada operação por uma worker thread sem que hajam esperas ativas nem exceço de escritores ou leitores.
 	
 PUBLISHER:
-O publisher pode ser inicializado com "pub <register_pipe> <pipe_name> <box_name>", em que (register pipe) é o pipe que vai usar para escrever e (pipe name) é o pipe do servidor.
+O publisher pode ser inicializado com "pub <register_pipe> <pipe_name> <box_name>", em que (register pipe) é o pipe do servidor e (pipe name) é o pipe que vai usar para escrever.
 	A ligação pode ser regeitada, dando um erro.
 	Recebe mensagens do stdin (teclado). (ver lab 7)
 	Envia as "mensagens" para o pipe da sessão (~pode ter de ser trocado pelo stdout? ainda n sei como fazer~).

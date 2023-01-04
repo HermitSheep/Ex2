@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include<signal.h>
 
 #include "logging.h"
 #include "utility_funcs.c"
@@ -17,15 +19,15 @@ Based off of named_pipes_sender from the 7th lab
 */
 
 /*need to:
-create a fifo (char **argv)
-send request to server (int argc)
+create a fifo (char **argv)             check
+send request to server (int argc)   check
 
-listen for input
-send it to the fifo*/
+format messages
+send them to the fifo*/
 
 #define BUFFER_SIZE (128)
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv, char *box_name) {// TODO check if box already has a publisher
 
     //*CREATE SESSION PIPE
     char *session_pipe = argv[1];  
@@ -51,25 +53,51 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    // open pipe for writing
-    // this waits for someone to open it for reading
-    int tx = open(session_pipe, O_WRONLY);
-    if (tx == -1) {
-        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	//*SEND REQUEST TO THE SERVER
+	int rx = open(argc, O_WRONLY);
+	if (rx == -1) {
+		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    //*SEND REQUEST TO THE SERVER
-    int tx = open(SERVER_FIFO, O_RDONLY);
-    if (tx == -1) {
-        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	send_request(1, session_pipe[MAX_SESSION_PIPE], box_name[MAX_BOX_NAME]);
 
-    send_request(1, session_pipe[MAX_SESSION_PIPE], box1);
+	// open pipe for writing
+	// this waits for someone to open it for reading
+	int tx = open(session_pipe, O_WRONLY);
+	if (tx == -1) {
+		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    //*WRITE MESSAGE
-    send_msg();
-    close(tx);
-    unlink(argv);
+	//*WRITE MESSAGE
+	size_t len = 1;
+	char line[256];
+	bool end = false;
+	while (!end) {
+		//*PLACE CODE
+		uint8_t code = M_PUB;
+		sprintf(line, "%ld|", code);  //?idk if this works
+
+		//*READS USER INPUT
+		if (fgets(line[2], sizeof(line), stdin) == NULL) {  //?idk if this works	(2 because of the code (9) and the |)
+			if (ferror(stdin)) ERROR("Failed to read from user input.");
+			if (feof(stdin)) end = true;	//*detects EOF
+		}
+
+		//*CLEAR EXTRA SPACE IN LINE
+		len = strlen(line) + 2;          
+		if (len < 256) memset(line[len - 1], "\0", 256 - len);  //?idk if this works, but i sure hope it does
+			                 //(-1 is to remove the final \n. I assume only the last \n needs this)
+
+		//*SEND LINE TO SERVER
+		ssize_t ret = write(tx, line, len);
+		if (ret < 0) {
+			fprintf(stderr, "[ERR]: write failed: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	close(tx);
+	unlink(argv);
 }
