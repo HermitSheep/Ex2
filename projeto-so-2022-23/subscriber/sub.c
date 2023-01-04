@@ -69,7 +69,7 @@ int main(char *argc, char **argv, char *box_name) {	//server fifo, session fifo,
         exit(EXIT_FAILURE);
     }
 
-    send_request(2, session_pipe[MAX_SESSION_PIPE], box_name[MAX_BOX_NAME]);
+    send_request(R_SUB, session_pipe[MAX_SESSION_PIPE], box_name[MAX_BOX_NAME]);
 
 	 // open pipe for reading
     // this waits for someone to open it for reading
