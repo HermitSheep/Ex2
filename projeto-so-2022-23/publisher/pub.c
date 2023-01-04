@@ -27,8 +27,12 @@ send them to the fifo*/
 
 #define BUFFER_SIZE (128)
 
-int main(char *server_pipe, char *session_pipe, char *box_name) {// TODO check if box already has a publisher
-
+int main(int argc, char **argv) {// TODO check if box already has a publisher
+	if (argc != 3) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
+	char *server_pipe = argv[1];
+	char *session_pipe = argv[2];
+	char *box_name = argv[3];
+	
 	/*	//* think the one bellow makes more sense
     // remove pipe if it does exist
     if (unlink(session_pipe) != 0 && errno != ENOENT) {
@@ -36,6 +40,7 @@ int main(char *server_pipe, char *session_pipe, char *box_name) {// TODO check i
                 strerror(errno));
         exit(EXIT_FAILURE);
     }
+	:)
 	*/
 
     /*The named file already exists.*/
