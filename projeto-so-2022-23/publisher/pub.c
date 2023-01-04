@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include<signal.h>
 
 #include "logging.h"
 #include "utility_funcs.c"
@@ -68,14 +69,14 @@ int main(char *argc, char **argv, char *box) {  // TODO check if box already has
 		uint8_t code = M_PUB;
 		sprintf(line, "%ld|", code);  //?idk if this works
 
-		//*READS
+		//*READS USER INPUT
 		if (fgets(line[2], sizeof(line), stdin) == NULL) {  //?idk if this works	(2 because of the code (9) and the |)
 			if (ferror(stdin)) ERROR("Failed to read from user input.");
-			if (feof(stdin)) end = true;
+			if (feof(stdin)) end = true;	//*detects EOF
 		}
 
 		//*CLEAR EXTRA SPACE IN LINE
-		len = strlen(line) + 2;
+		len = strlen(line) + 2;          
 		if (len < 256) memset(line[len - 1], "\0", 256 - len);  //?idk if this works, but i sure hope it does
 			                 //(-1 is to remove the final \n. I assume only the last \n needs this)
 

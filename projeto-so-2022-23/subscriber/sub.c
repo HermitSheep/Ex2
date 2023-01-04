@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include<signal.h>
 
 #include "logging.h"
 #include "utility_funcs.c"
@@ -22,6 +23,12 @@ send request to server (int argc)
 
 listen to the fifo for output
 print the output with "fprintf(stdout, "%s\n", message);"*/
+bool session_end = false;
+
+static int sig_handler(int sig) {
+	if (sig == SIGINT) session_end = true;
+	return;
+}
 
 int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box name
 	//*CREATE SESSION PIPE
@@ -59,27 +66,28 @@ int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box 
 	//* PRINT MESSAGE
 	size_t len = 1;
 	char line[256];
-	bool end = false;
 	int received_messages = 0;
-	while (!end) {
+	ssize_t ret;
+	while (!session_end) {
 		//*READ
-		if (fgets(line, 3, session_pipe) == NULL) {	//ignore first 3 characters (10|)
-			if (ferror(session_pipe)) ERROR("Failed to read from user input.");
-			end = true;
-		}
-		if (fgets(line, sizeof(line), session_pipe) == NULL) {  //?idk if this works	(2 because of the code (9) and the |)
-			if (ferror(session_pipe)) ERROR("Failed to read from user input.");
-			if (feof(session_pipe)) end = true;
+		ret = read(session_pipe, line, sizeof(line));
+		if (ret == 0) {	//ignore first 3 characters (10|)
+            // ret == 0 signals EOF
+            fprintf(stderr, "[INFO]: pipe closed\n");
+            break;
 		}
 
+		//*CTRL+C DETECTION
+		if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_FAILURE);
+
 		//*PRINT LINE
-		fputs(line, stdout);
+		fprintf(stdout, "%s\n", line);
 
 		received_messages++;
 	}
 
 	fprintf(stdout, "%d messages  were received.\n");
-	
+
 	close(tx);
 	close(rx);
 	unlink(argv);
