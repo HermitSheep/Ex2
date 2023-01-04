@@ -1,16 +1,16 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include<signal.h>
 
 #include "logging.h"
 #include "utility_funcs.c"
@@ -30,7 +30,7 @@ static int sig_handler(int sig) {
 	return;
 }
 
-int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box name
+int main(char *argc, char **argv, char *box) {  // server fifo, session fifo, box name
 	//*CREATE SESSION PIPE
 	char *session_pipe = argv[1];
 
@@ -46,22 +46,22 @@ int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box 
 		exit(EXIT_FAILURE);
 	}
 
-    //*SEND REQUEST TO THE SERVER
-    int rx = open(argc, O_WRONLY);
-    if (rx == -1) {
-        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	//*SEND REQUEST TO THE SERVER
+	int rx = open(argc, O_WRONLY);
+	if (rx == -1) {
+		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-    send_request(1, session_pipe, box);
+	send_request(1, session_pipe, box);
 
-	 // open pipe for reading
-    // this waits for someone to open it for reading
-    int tx = open(session_pipe, O_RDONLY);
-    if (tx == -1) {
-        fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+	// open pipe for reading
+	// this waits for someone to open it for reading
+	int tx = open(session_pipe, O_RDONLY);
+	if (tx == -1) {
+		fprintf(stderr, "[ERR]: open failed: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
 	//* PRINT MESSAGE
 	size_t len = 1;
@@ -71,11 +71,8 @@ int main(char *argc, char **argv, char *box) {	//server fifo, session fifo, box 
 	while (!session_end) {
 		//*READ
 		ret = read(session_pipe, line, sizeof(line));
-		if (ret == 0) {	//ignore first 3 characters (10|)
-            // ret == 0 signals EOF
-            fprintf(stderr, "[INFO]: pipe closed\n");
-            break;
-		}
+		if (ret == 0) session_end = true;  //*detects EOF
+		else if (ret == -1) ERROR("Failed to read from user input.");
 
 		//*CTRL+C DETECTION
 		if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_FAILURE);

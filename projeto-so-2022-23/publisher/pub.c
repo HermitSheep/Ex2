@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,7 +11,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include<signal.h>
 
 #include "logging.h"
 #include "utility_funcs.c"
@@ -63,21 +63,21 @@ int main(char *argc, char **argv, char *box) {  // TODO check if box already has
 	//*WRITE MESSAGE
 	size_t len = 1;
 	char line[256];
-	bool end = false;
-	while (!end) {
+	bool session_end = false;
+	while (!session_end) {
 		//*PLACE CODE
 		uint8_t code = M_PUB;
 		sprintf(line, "%ld|", code);  //?idk if this works
 
 		//*READS USER INPUT
-		if (fgets(line[2], sizeof(line), stdin) == NULL) {  //?idk if this works	(2 because of the code (9) and the |)
-			if (ferror(stdin)) ERROR("Failed to read from user input.");
-			if (feof(stdin)) end = true;	//*detects EOF
-		}
+		ssize_t ret = read(STDIN_FILENO, line[2], sizeof(line) - 1); //?idk if this works	(2 because of the code (9) and the |)
+		if (ret == 0)  session_end = true;  //*detects EOF
+		else if (ret == -1) ERROR("Failed to read from user input.");
 
 		//*CLEAR EXTRA SPACE IN LINE
-		len = strlen(line) + 2;          
-		if (len < 256) memset(line[len - 1], "\0", 256 - len);  //?idk if this works, but i sure hope it does
+		len = strlen(line) + 2;
+		if (len < 256) memset(line[len - 1], "\0", 256 - len);  
+							//?idk if this works, but i sure hope it does
 			                 //(-1 is to remove the final \n. I assume only the last \n needs this)
 
 		//*SEND LINE TO SERVER
