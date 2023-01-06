@@ -38,19 +38,23 @@ int main(int argc, char **argv) {
     //* PRINT MESSAGE
 	char line[1 + 1 + 2 + 1 + MAX_MESSAGE + 1];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	ssize_t ret;
+	char *error_code;
+	char *error_message;
+	const char seperator = "|";
     bool session_end = false;
 	while (!session_end) {
 		//*READ
 		ret = read(session_pipe, line, sizeof(line));
 		if (ret == -1) ERROR("Failed to read from user input.");
-		if (ret > 0){
-			
-			else {
-
-			}
-		}
+		
 		//*PRINT LINE
-		fprintf(stdout, "%s\n", line);
+		error_code = strtok(line, seperator);
+		error_code = strtok(NULL, seperator);
+		error_message = strtok(NULL, seperator);
+		if (strcmp(error_code, "-1"))
+			fprintf(stdout, "ERROR %s\n", error_message);
+		else
+			fprintf(stdout, "OK\n");
 	}
 
     return -1;
