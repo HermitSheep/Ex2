@@ -1,4 +1,5 @@
 #include "utility_funcs.c"
+#include "producer-consumer.h"
 
 /*need to:
 create a fifo (char **argv, server fifo)

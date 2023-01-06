@@ -1,9 +1,19 @@
 #include "utility_funcs.c"
+#include "producer-consumer.h"
 
-int main(int argc, char **argv) {
-	if (argc != 3) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
-	char *server_pipe = argv[1];
-	char *session_pipe = argv[2];
-	char *box_name = argv[3];
-    return -1;
+
+int pcq_create(pc_queue_t *queue, size_t capacity) {
+
+}
+
+int pcq_destroy(pc_queue_t *queue) {
+
+}
+
+int pcq_enqueue(pc_queue_t *queue, void *elem) {
+
+}
+
+void *pcq_dequeue(pc_queue_t *queue) {
+
 }
