@@ -22,8 +22,7 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 	//*SEND REQUEST TO THE SERVER
 	int rx = open(server_pipe, O_WRONLY);
 	if (rx == -1)  ERROR("Open server pipe failed");
-
-	send_request(R_PUB, session_pipe, box_name);	//removed the [...]'s to pass the strings (passing for ex box_name[9] might not pass the first 9 characters?)
+	send_request(R_PUB, session_pipe, box_name, rx);	//removed the [...]'s to pass the strings (passing for ex box_name[9] might not pass the first 9 characters?)
 
 	// open pipe for writing
 	// this waits for someone to open it for reading

@@ -23,19 +23,20 @@ session fifo*/
 #define MAX_BOX_NAME 32
 #define MAX_MESSAGE 1024    //for normal and error messages
 
-void send_request(uint8_t code, char const *session_pipe, char const *box_name) {
+void send_request(uint8_t code, char const *session_pipe, char const *box_name, int rx) {   //rx -> server file indicator
     char zero = "\0"; 
     char request[2 + 1 + MAX_PIPE_NAME + 1 + MAX_BOX_NAME];
-
+    //*BACKFILL NAMES
     if (strlen(session_pipe) <= MAX_PIPE_NAME){
         session_pipe += zero * (MAX_PIPE_NAME - strlen(session_pipe));
     }
     if (strlen(box_name)< MAX_BOX_NAME){
         box_name += zero * (MAX_BOX_NAME - strlen(box_name));
     }
-
+    //*FORMAT REQUEST
     sprintf(request, "%d|%s|%s", code, session_pipe, box_name);
-
-    
+    //*SEND REQUEST
+    write(rx, request, sizeof(request));
+    return;
 }
 

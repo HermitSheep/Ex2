@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     if (strcmp(instruction, "create"))  code = C_BOX;
     else if (strcmp(instruction, "remove")) code = R_BOX;
     else if (strcmp(instruction, "list")) code = L_BOX;
-	send_request(code, session_pipe, box_name);
+	send_request(code, session_pipe, box_name, rx);
 
 	// open pipe for writing
 	// this waits for someone to open it for reading
