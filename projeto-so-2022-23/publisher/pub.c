@@ -31,7 +31,7 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 
 	//*WRITE MESSAGE
 	size_t len = 1;
-	char line[1 + 1 + MAX_PIPE_NAME + 1 + MAX_BOX_NAME + 1];	//[ code = 2 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ] \0
+	char line[1 + 1 + MAX_MESSAGE];	//[ code = 9 (uint8_t) ] | [ message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	bool session_end = false;
 	while (!session_end) {

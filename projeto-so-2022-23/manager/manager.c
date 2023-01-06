@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 		ret = read(session_pipe, line, sizeof(line));
 		if (ret == -1) ERROR("Failed to read from user input.");
 		if (ret > 0){
-			if (line[2] == "0") fprintf(stdout, "OK\n");
+			
 			else {
 
 			}
