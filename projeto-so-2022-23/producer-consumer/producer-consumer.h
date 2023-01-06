@@ -28,6 +28,11 @@ typedef struct {
     pthread_cond_t pcq_popper_condvar;
 } pc_queue_t;
 
+
+pthread_cond_t bufferCheio = PTHREAD_COND_INITIALIZER;
+pthread_cond_t msgparaLer = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t semExMut = PTHREAD_MUTEX_INITIALIZER;
+
 // pcq_create: create a queue, with a given (fixed) capacity
 //
 // Memory: the queue pointer must be previously allocated

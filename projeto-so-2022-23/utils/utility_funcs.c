@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "logging.h"
+#include "operations.h"
 
 /*need to:
 Message: format a string to the specifications in "instruções do projeto"/the proj sheet
