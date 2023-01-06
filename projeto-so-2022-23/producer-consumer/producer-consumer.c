@@ -18,38 +18,71 @@ int pcq_create(pc_queue_t *queue, size_t capacity) {
 	queue->pcq_capacity = capacity;
 	queue->pcq_buffer = (void**) malloc (queue->pcq_capacity * sizeof(void));
 	queue->pcq_head = 0;
-	queue->pcp_last = -1 ;
-	queue->pcp_nItems = 0;
+	queue->pcq_tail = -1 ;
+	queue->pcq_current_size  = 0;
+	if (queue->pcq_buffer == NULL){
+		return -1;
+	}
+	queue->pcq_capacity = capacity;
+	    
+	// Initialize the mutexes and condition variables
+    pthread_mutex_init(&queue->pcq_current_size_lock, NULL);
+    pthread_mutex_init(&queue->pcq_head_lock, NULL);
+    pthread_mutex_init(&queue->pcq_tail_lock, NULL);
+    pthread_mutex_init(&queue->pcq_pusher_condvar_lock, NULL);
+    pthread_mutex_init(&queue->pcq_popper_condvar_lock, NULL);
+    pthread_cond_init(&queue->pcq_pusher_condvar, NULL);
+    pthread_cond_init(&queue->pcq_popper_condvar, NULL);
+
+    return 0;
+
+
 }
 
 int pcq_destroy(pc_queue_t *queue) {	/*usa sempre o primeiro item da fila*/
-	
+    // Free the queue buffer
+    free(queue->pcq_buffer);
 
+    // Destroy the mutexes and condition variables
+    pthread_mutex_destroy(&queue->pcq_current_size_lock);
+    pthread_mutex_destroy(&queue->pcq_head_lock);
+    pthread_mutex_destroy(&queue->pcq_tail_lock);
+    pthread_mutex_destroy(&queue->pcq_pusher_condvar_lock);
+    pthread_mutex_destroy(&queue->pcq_popper_condvar_lock);
+    pthread_cond_destroy(&queue->pcq_pusher_condvar);
+    pthread_cond_destroy(&queue->pcq_popper_condvar);
+
+	return 0;
 }
 
 int pcq_enqueue(pc_queue_t *queue, void *elem) {
-	if (queue->pcp_nItems == queue->pcq_capacity){
+	pthread_mutex_lock(&queue->pcq_current_size_lock);
+
+	while (queue->pcq_current_size == queue->pcq_capacity) {
+        pthread_cond_wait(&queue->pcq_pusher_condvar, &queue->pcq_pusher_condvar_lock);
+    }
+	/*if (queue->pcp_nItems == queue->pcq_capacity){
 		sleep(queue);
+	}*/
+	if (queue->pcq_tail == queue->pcq_capacity-1){
+		queue->pcq_tail =-1;
 	}
-	if (queue->pcp_last == queue->pcq_capacity-1){
-		queue->pcp_last =-1;
-	}
-	queue->pcp_last++;
-	queue->pcq_buffer[queue->pcp_last] = elem;
-	queue->pcp_nItems++;
+	queue->pcq_tail++;
+	queue->pcq_buffer[queue->pcq_tail] = elem;
+	queue->pcq_current_size ++;
 
 }
 
 void *pcq_dequeue(pc_queue_t *queue) {
-	if (queue->pcp_nItems == 0){
+	if (queue->pcq_current_size  == 0){
 		sleep(queue);
 	}
 	else{
-		int value = queue->data_base_pct[queue->pcq_head++];	//pega o valor e incrementa o primeiro
+		int value = queue->pcq_buffer[queue->pcq_head++];	//pega o valor e incrementa o primeiro
 		if(queue->pcq_head == queue->pcq_capacity){
 		queue->pcq_head =0;
 		}
 	}
-	queue->pcp_nItems--;
+	queue->pcq_current_size --;
 
 }
