@@ -30,7 +30,7 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
     if (strlen(session_pipe) <= MAX_PIPE_NAME){
         session_pipe[MAX_PIPE_NAME + 1] = '\0';     //makes sure the max size isn't exceeded
         session_pipe += zero * (MAX_PIPE_NAME - strlen(session_pipe));      //backfills names
-    if (strlen(box_name)< MAX_BOX_NAME){
+    }if (strlen(box_name)< MAX_BOX_NAME){
         session_pipe[MAX_PIPE_NAME + 1] = '\0';
         box_name += zero * (MAX_BOX_NAME - strlen(box_name));
     }
