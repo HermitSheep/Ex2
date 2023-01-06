@@ -29,14 +29,16 @@ int main(int argc, char **argv) {
 	if (rx == -1) ERROR("Open server pipe failed");
     send_request(R_SUB, session_pipe, box_name, rx);	//removed the [...]'s to pass the strings (passing for ex box_name[9] might not pass the first 9 characters?)
 
-	// open pipe for reading
-	// this waits for someone to open it for reading
+	// open session pipe for reading
+	// this waits for server to open it for reading
 	int tx = open(session_pipe, O_RDONLY);
 	if (tx == -1)  ERROR("Open session pipe failed.");
 
 	//* PRINT MESSAGE
 	size_t len = 1;
-	char line[1 + 1 + MAX_PIPE_NAME + 1 + MAX_BOX_NAME];	//[ code = 2 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]
+	char line[2 + 1 + MAX_MESSAGE];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
+	char *message;
+	const char seperator = "|";
 	int received_messages = 0;
 	ssize_t ret;
 	while (!session_end) {
@@ -49,7 +51,9 @@ int main(int argc, char **argv) {
 		if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_FAILURE);
 
 		//*PRINT LINE
-		fprintf(stdout, "%s\n", line);
+		message = strtok(line, seperator);		//code
+		message = strtok(NULL, seperator);	//message
+		fprintf(stdout, "%s\n", message);
 
 		received_messages++;
 	}

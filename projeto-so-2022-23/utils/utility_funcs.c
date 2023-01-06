@@ -25,7 +25,7 @@ session fifo*/
 
 void send_request(uint8_t code, char const *session_pipe, char const *box_name, int rx) {   //rx -> server file indicator
     char zero = "\0"; 
-    char request[2 + 1 + MAX_PIPE_NAME + 1 + MAX_BOX_NAME];
+    char request[2 + 1 + MAX_PIPE_NAME + 1 + MAX_BOX_NAME + 1]; //code (1-10) | pipe name | box name \0
     //*BACKFILL NAMES
     if (strlen(session_pipe) <= MAX_PIPE_NAME){
         session_pipe += zero * (MAX_PIPE_NAME - strlen(session_pipe));
