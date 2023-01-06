@@ -11,12 +11,21 @@
 typedef struct {
     void **pcq_buffer;
     size_t pcq_capacity;
+    float *data_base_pct;
 
     pthread_mutex_t pcq_current_size_lock;
     size_t pcq_current_size;
 
     pthread_mutex_t pcq_head_lock;
     size_t pcq_head;
+
+    pthread_mutex_t pcp_last_lock;
+    size_t pcp_last;
+
+
+    pthread_mutex_t pcp_items_lock;
+    size_t pcp_nItems;
+
 
     pthread_mutex_t pcq_tail_lock;
     size_t pcq_tail;
@@ -29,8 +38,8 @@ typedef struct {
 } pc_queue_t;
 
 
-pthread_cond_t bufferCheio = PTHREAD_COND_INITIALIZER;
-pthread_cond_t msgparaLer = PTHREAD_COND_INITIALIZER;
+//pthread_cond_t bufferCheio = PTHREAD_COND_INITIALIZER;
+//pthread_cond_t msgparaLer = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t semExMut = PTHREAD_MUTEX_INITIALIZER;
 
 // pcq_create: create a queue, with a given (fixed) capacity
