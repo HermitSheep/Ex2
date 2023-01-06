@@ -13,9 +13,9 @@ typedef enum {
 typedef enum {		//they're all meant to be unit8_t numbers
 	R_PUB = 1,	//REGISTER PUBLISHER
 	R_SUB = 2,	//REGISTER SUBSCRIBER
-	C_CAIXA = 3,	//CREATE BOX
+	C_BOX = 3,	//CREATE BOX
 	R_C_BOX = 4,	//RESPONSE TO CREATE BOX
-	D_BOX = 5,	//DELETE BOX
+	R_BOX = 5,	//REMOVE BOX
 	R_D_BOX = 6,	//RESPONSE TO DELETE BOX
 	L_BOX = 7,	//LIST BOXES
 	R_L_BOX = 8,	//RESPONSE TO LIST BOXES

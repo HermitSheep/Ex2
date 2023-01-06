@@ -1,18 +1,3 @@
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
-#include "logging.h"
 #include "utility_funcs.c"
 
 #define BUFFER_SIZE (128)
@@ -36,24 +21,14 @@ int main(int argc, char **argv) {
 	char *session_pipe = argv[2];
 	char *box_name = argv[3];
 	//*CREATE SESSION PIPE
-
-	/* //* I think the one bellow makes more sense
-	// remove pipe if it does exist 
-	if (unlink(session_pipe) != 0 && errno != ENOENT) {
-		fprintf(stderr, "[ERR]: unlink(%s) failed: %s\n", session_pipe, strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-	*/
-
-    /*The named file already exists.*/		//! este talvez faz o mesmo que o acima?
-    if (mkfifo(session_pipe, 0640) == -1 && errno != EEXIST ) 
-		ERROR("Session pipe already exists.");
+    /*The named file already exists.*/
+    if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ) ERROR("Session pipe already exists.");
 
 	//*SEND REQUEST TO THE SERVER
 	int rx = open(server_pipe, O_WRONLY);
 	if (rx == -1) ERROR("Open server pipe failed");
 
-    send_request(R_SUB, session_pipe[MAX_SESSION_PIPE], box_name[MAX_BOX_NAME]);
+    send_request(R_SUB, session_pipe, box_name);	//removed the [...]'s to pass the strings (passing for ex box_name[9] might not pass the first 9 characters?)
 
 	// open pipe for reading
 	// this waits for someone to open it for reading
@@ -62,7 +37,7 @@ int main(int argc, char **argv) {
 
 	//* PRINT MESSAGE
 	size_t len = 1;
-	char line[256];
+	char line[1 + 1 + MAX_PIPE_NAME + 1 + MAX_BOX_NAME];	//[ code = 2 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]
 	int received_messages = 0;
 	ssize_t ret;
 	while (!session_end) {
@@ -80,9 +55,10 @@ int main(int argc, char **argv) {
 		received_messages++;
 	}
 
-	fprintf(stdout, "%d messages  were received.\n");
+	fprintf(stdout, "%d messages  were received.\n", received_messages);
 
 	close(tx);
 	close(rx);
 	unlink(session_pipe);
+	return 1;
 }

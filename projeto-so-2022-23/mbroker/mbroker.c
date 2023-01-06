@@ -1,17 +1,4 @@
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
-#include "logging.h"
+#include "utility_funcs.c"
 
 /*need to:
 create a fifo (char **argv, server fifo)
@@ -23,9 +10,9 @@ manager: accomplish request (...)
 */
 
 int main(int argc, char **argv) {
-    (void)argc;
-    (void)argv;
-    fprintf(stderr, "usage: mbroker <pipename>\n");
-    WARN("unimplemented"); // TODO: implement
+	if (argc != 3) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
+	char *server_pipe = argv[1];
+	char *session_pipe = argv[2];
+	char *box_name = argv[3];
     return -1;
 }
