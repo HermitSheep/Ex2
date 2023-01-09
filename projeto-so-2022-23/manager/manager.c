@@ -1,4 +1,4 @@
-#include "utility_funcs.c"
+#include "utility_funcs.h"
 
 static void print_usage() {
     fprintf(stderr, "usage: \n"
@@ -53,9 +53,10 @@ int main(int argc, char **argv) {
 		error_message = strtok(NULL, seperator);
 		if (strcmp(error_code, "-1"))
 			fprintf(stdout, "ERROR %s\n", error_message);
-		else
+        else if (error_code != NULL) {
 			fprintf(stdout, "OK\n");
+            session_end = true;
+        }
 	}
-
-    return -1;
+    return 1;
 }

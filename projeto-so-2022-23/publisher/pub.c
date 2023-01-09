@@ -1,4 +1,4 @@
-#include "utility_funcs.c"
+#include "utility_funcs.h"
 /*
 Based off of named_pipes_sender from the 7th lab
 */

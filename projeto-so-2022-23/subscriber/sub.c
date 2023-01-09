@@ -1,4 +1,4 @@
-#include "utility_funcs.c"
+#include "utility_funcs.h"
 
 #define BUFFER_SIZE (128)
 

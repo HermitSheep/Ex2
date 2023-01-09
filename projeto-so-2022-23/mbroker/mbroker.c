@@ -1,4 +1,4 @@
-#include "utility_funcs.c"
+#include "utility_funcs.h"
 #include "producer-consumer.h"
 
 /*need to:
@@ -15,5 +15,6 @@ int main(int argc, char **argv) {
 	char *server_pipe = argv[1];
 	char *session_pipe = argv[2];
 	char *box_name = argv[3];
+	printf("%s%s%s", server_pipe, session_pipe, box_name);
     return -1;
 }
