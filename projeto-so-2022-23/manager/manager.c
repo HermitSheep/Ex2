@@ -1,4 +1,4 @@
-#include "utility_funcs.h"
+#include "../utils/utility_funcs.h"
 
 static void print_usage() {
     fprintf(stderr, "usage: \n"
