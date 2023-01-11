@@ -36,11 +36,10 @@ int main(int argc, char **argv) {
 	if (tx == -1)  ERROR("Open session pipe failed.");
 
     //* PRINT MESSAGE
-	char line[1 + 1 + 2 + 1 + MAX_MESSAGE + 1];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
+	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	ssize_t ret;
-	char *error_code;
+	int32_t error_code;
 	char *error_message;
-	const char seperator = "|";
     bool session_end = false;
 	while (!session_end) {
 		//*READ
@@ -48,9 +47,7 @@ int main(int argc, char **argv) {
 		if (ret == -1) ERROR("Failed to read from user input.");
 		
 		//*PRINT LINE
-		error_code = strtok(line, seperator);
-		error_code = strtok(NULL, seperator);
-		error_message = strtok(NULL, seperator);
+		sscanf(line, "%d%ld%s", &code, error_code, error_message);
 		if (strcmp(error_code, "-1"))
 			fprintf(stdout, "ERROR %s\n", error_message);
         else if (error_code != NULL) {

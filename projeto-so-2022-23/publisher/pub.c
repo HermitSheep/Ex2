@@ -31,7 +31,7 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 
 	//*WRITE MESSAGE
 	size_t len = 1;
-	char line[1 + 1 + MAX_MESSAGE];	//[ code = 9 (uint8_t) ] | [ message (char[1024]) ]
+	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 9 (uint8_t) ] | [ message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	bool session_end = false;
 	while (!session_end) {
@@ -44,8 +44,8 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 		else if (ret == -1) ERROR("Failed to read from user input.");
 
 		len = strlen(message);	//backfill message with \0
-		if (len < MAX_MESSAGE) memset(message[len - 1], "\0", MAX_MESSAGE - len);  //(-1 is to remove the final \n. I assume only the last \n needs this)
-		sprintf(line, "%ld|%s", code, message);
+		if (len < MAX_MESSAGE) memset(message[len - 1], '\0', MAX_MESSAGE - len);  //(-1 is to remove the final \n. I assume only the last \n needs this)
+		sprintf(line, "%ld%s", code, message);
 
 		//*SEND LINE TO SERVER
 		ssize_t ret = write(tx, line, len);

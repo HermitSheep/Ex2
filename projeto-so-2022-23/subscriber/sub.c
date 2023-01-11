@@ -36,11 +36,11 @@ int main(int argc, char **argv) {
 
 	//* PRINT MESSAGE
 	size_t len = 1;
-	char line[2 + 1 + MAX_MESSAGE];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
+	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
 	char *message;
-	const char seperator = "|";
 	int received_messages = 0;
 	ssize_t ret;
+	uint8_t code;
 	while (!session_end) {
 		//*READ
 		ret = read(session_pipe, line, sizeof(line));
@@ -51,8 +51,7 @@ int main(int argc, char **argv) {
 		if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_FAILURE);
 
 		//*PRINT LINE
-		message = strtok(line, seperator);		//code
-		message = strtok(NULL, seperator);	//message
+		sscanf(line, "%d%s", &code, message);
 		fprintf(stdout, "%s\n", message);
 
 		received_messages++;

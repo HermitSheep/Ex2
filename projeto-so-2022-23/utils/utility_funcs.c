@@ -36,9 +36,10 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
         box_name += zero * (MAX_BOX_NAME - strlen(box_name));
     }
     //*FORMAT REQUEST
-    sprintf(request, "%d|%s|%s", code, session_pipe, box_name);
+    sprintf(request, "%d%s%s", code, session_pipe, box_name);
     //*SEND REQUEST
     if (write(rx, request, sizeof(request)) < 0) ERROR("Failed to send request to server.");
     return;
 }       //! we should probably make a read request function too, because all the \0's in the middle of the request make it hard for the reader to know when it's truly finished reading
+
 

@@ -18,7 +18,7 @@ int pcq_create(pc_queue_t *queue, size_t capacity) {
 	queue->pcq_capacity = capacity;
 	queue->pcq_buffer = (void**) malloc (queue->pcq_capacity * sizeof(void));
 	queue->pcq_head = 0;
-	queue->pcq_tail = -1 ;
+	queue->pcq_tail = (size_t) -1 ;
 	queue->pcq_current_size  = 0;
 	if (queue->pcq_buffer == NULL){
 		return -1;
@@ -65,7 +65,7 @@ int pcq_enqueue(pc_queue_t *queue, void *elem) {
 		sleep(queue);
 	}*/
 	if (queue->pcq_tail == queue->pcq_capacity-1){
-		queue->pcq_tail =-1;
+		queue->pcq_tail = (size_t) -1;
 	}
 	queue->pcq_tail++;
 	queue->pcq_buffer[queue->pcq_tail] = elem;
@@ -75,7 +75,7 @@ int pcq_enqueue(pc_queue_t *queue, void *elem) {
 
 void *pcq_dequeue(pc_queue_t *queue) {
 	if (queue->pcq_current_size  == 0){
-		sleep(queue);
+		//wait(queue);
 	}
 	else{
 		int value = queue->pcq_buffer[queue->pcq_head++];	//pega o valor e incrementa o primeiro
