@@ -1,4 +1,4 @@
-#include "utility_funcs.h"
+#include "../utils/utility_funcs.h"
 
 static void print_usage() {
     fprintf(stderr, "usage: \n"
@@ -47,10 +47,10 @@ int main(int argc, char **argv) {
 		if (ret == -1) ERROR("Failed to read from user input.");
 		
 		//*PRINT LINE
-		sscanf(line, "%d%ld%s", &code, error_code, error_message);
-		if (strcmp(error_code, "-1"))
+   		sscanf(line, "%1" SCNu8 "%2"SCNd32 "%s", &code, &error_code, error_message);
+		if ((int)error_code == -1)
 			fprintf(stdout, "ERROR %s\n", error_message);
-        else if (error_code != NULL) {
+		else{
 			fprintf(stdout, "OK\n");
             session_end = true;
         }
