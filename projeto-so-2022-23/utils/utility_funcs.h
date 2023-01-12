@@ -22,6 +22,8 @@
 #define MAX_PIPE_NAME 256
 #define MAX_BOX_NAME 32
 #define MAX_MESSAGE 1024    //for normal and error messages
+#define MAX_PIPE 256+32+1
+
 
 typedef enum {		//they're all meant to be unit8_t numbers
 	R_PUB = 1,	//REGISTER PUBLISHER
@@ -35,6 +37,8 @@ typedef enum {		//they're all meant to be unit8_t numbers
 	M_PUB = 9, 	//MESSAGE from PUBLISHER to server
 	M_SUB = 10,	//MESSAGE from server to SUBSCRIBER
 } codes;
+
+
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx);
 
