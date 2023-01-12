@@ -39,7 +39,7 @@ int pcq_create(pc_queue_t *queue, size_t capacity) {
 
 }
 
-int pcq_destroy(pc_queue_t *queue) {	/*usa sempre o primeiro item da fila*/
+int pcq_destroy(pc_queue_t *queue) {	
     // Free the queue buffer
     free(queue->pcq_buffer);
 

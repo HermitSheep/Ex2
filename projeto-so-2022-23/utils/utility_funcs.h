@@ -36,6 +36,8 @@ typedef enum {		//they're all meant to be unit8_t numbers
 	M_SUB = 10,	//MESSAGE from server to SUBSCRIBER
 } codes;
 
+
+
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx);
 
 #endif  // __UTILS_FUNCS_H__
