@@ -43,3 +43,99 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
 }       //! we should probably make a read request function too, because all the \0's in the middle of the request make it hard for the reader to know when it's truly finished reading
 
 
+
+
+
+typedef struct node{
+    long key;
+    char data[DATA_SIZE];
+    struct node *next;
+}node_l;
+typedef node_l *list_l;
+
+
+
+//linked list_ls
+void insert_input_b_l(list_l *head) {
+    //Adiciona uma celula no inicio da list_l de acordo com input
+    list_l p;
+    p = malloc(sizeof(node_l));
+    printf("mensagem\n");
+    scanf("%ld",&p->key);
+    readNext(p->data);
+    p->next = *head;
+    *head = p;
+}
+
+void insert_input_e_l(list_l *head/*, list_l *ult*/) {
+    //Adiciona uma celula no fim da list_l de acordo com o input
+    list_l p, q;
+    p = *head;
+    q = malloc(sizeof(node_l));
+    printf("mensagem\n");
+    scanf("%#",&q->###);
+    q->next = NULL;
+    /* *ult->next = q;*/
+    while(p->next != NULL)
+        p = p->next;
+    p->next = q;
+}
+
+void insert_b_l(list_l *head, ## ###) {
+    //Adiciona uma celula no inicio da list_l
+    list_l p;
+    p = malloc(sizeof(node_l));
+    p->### = ###;
+    p->next = *head;
+    *head = p;
+}
+
+void insert_e_l(list_l *head/*, list_l *ult*/, ## ###) {
+    //Adiciona uma celula no fim da list_l
+    list_l p, q;
+    p = *head;
+    q = malloc(sizeof(node_l));
+    q->### = ###;
+    q->next = NULL;
+    /* *ult->next = q;*/
+    while(p->next != NULL)
+        p = p->next;
+    p->next = q;
+}
+
+void print_l(list_l *head) {
+    //Imheade a list_l completa
+    int i;
+    list_l p;
+    p = *head;
+    while(p != NULL){
+        printf("%#, %#, %#, %#.\n", p->#, p->#, p->#, p->#);
+        p = p->next;
+    }
+}
+
+list_l search_for_l(list_l *head, ## valproc) {
+    //Encontra a celula com o elemento procurado
+    list_l p;
+    int found = 0;
+    p = *head;
+    while(found == 0 && p != NULL){
+        if(p->### == valproc) 
+            found=1;
+        else 
+            p=p->next;
+    }
+    if(enc == 1) return p;
+    else return NULL;
+}
+
+list_l find_l(list_l *head, int index) {
+    //Encontra a celula correspondente ao indice
+    list_l p;
+    p = *head;
+    for (i = 1; i <= index; i++){
+        p = p->next;
+    }
+    return p;
+}
+
