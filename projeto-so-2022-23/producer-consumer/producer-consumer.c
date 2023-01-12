@@ -61,28 +61,33 @@ int pcq_enqueue(pc_queue_t *queue, void *elem) {
 	while (queue->pcq_current_size == queue->pcq_capacity) {
         pthread_cond_wait(&queue->pcq_pusher_condvar, &queue->pcq_pusher_condvar_lock);
     }
-	/*if (queue->pcp_nItems == queue->pcq_capacity){
-		sleep(queue);
-	}*/
+	pthread_mutex_lock(&queue->pcq_tail_lock);
 	if (queue->pcq_tail == queue->pcq_capacity-1){
 		queue->pcq_tail = (size_t) -1;
 	}
 	queue->pcq_tail++;
 	queue->pcq_buffer[queue->pcq_tail] = elem;
 	queue->pcq_current_size ++;
+	pthread_mutex_unlock(&queue->pcq_current_size_lock);
+	pthread_mutex_unlock(&queue->pcq_tail_lock);
 
 }
 
 void *pcq_dequeue(pc_queue_t *queue) {
+	pthread_mutex_lock(&queue->pcq_current_size_lock);
 	if (queue->pcq_current_size  == 0){
-		//wait(queue);
+		pthread_cond_wait(&queue->pcq_popper_condvar, &queue->pcq_popper_condvar_lock);
 	}
 	else{
+		pthread_mutex_lock(&queue->pcq_head_lock);
 		int value = queue->pcq_buffer[queue->pcq_head++];	//pega o valor e incrementa o primeiro
 		if(queue->pcq_head == queue->pcq_capacity){
 		queue->pcq_head =0;
 		}
 	}
 	queue->pcq_current_size --;
+	pthread_mutex_unlock(&queue->pcq_popper_condvar_lock);
+	pthread_mutex_unlock(&queue->pcq_head_lock);
+
 
 }
