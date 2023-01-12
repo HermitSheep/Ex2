@@ -22,7 +22,7 @@
 #define MAX_PIPE_NAME 256
 #define MAX_BOX_NAME 32
 #define MAX_MESSAGE 1024    //for normal and error messages
-#define MAX_PIPE 256+32+1
+#define MAX_REQUEST 256+32+1
 
 
 typedef enum {		//they're all meant to be unit8_t numbers

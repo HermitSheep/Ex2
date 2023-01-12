@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 
 	//* PRINT MESSAGE
 	size_t len = 1;
-	char line[sizeof(uint8_t) + MAX_PIPE];	//[ code = ? (uint8_t) ] | [ client_named_path (char[256]) | box_name(char[32]) ]
+	char line[sizeof(uint8_t) + MAX_REQUEST];	//[ code = ? (uint8_t) ] | [ client_named_path (char[256]) | box_name(char[32]) ]
 	ssize_t ret;
 	while (!session_end) {
 		//*READ session_pipe
