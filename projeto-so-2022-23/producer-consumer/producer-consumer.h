@@ -9,23 +9,22 @@
 // implementation
 
 typedef struct {
-    void **pcq_buffer;
+    void **pcq_buffer;      //request
     size_t pcq_capacity;
 
-    pthread_mutex_t pcq_current_size_lock;
+    pthread_mutex_t pcq_current_size_lock;          //queue lock
     size_t pcq_current_size;
 
-    pthread_mutex_t pcq_head_lock;
+    pthread_mutex_t pcq_head_lock;                       //first element lock
     size_t pcq_head;
 
-
-    pthread_mutex_t pcq_tail_lock;
+    pthread_mutex_t pcq_tail_lock;                          //last element lock
     size_t pcq_tail;
 
-    pthread_mutex_t pcq_pusher_condvar_lock;
+    pthread_mutex_t pcq_pusher_condvar_lock;        //pushing operation
     pthread_cond_t pcq_pusher_condvar;
 
-    pthread_mutex_t pcq_popper_condvar_lock;
+    pthread_mutex_t pcq_popper_condvar_lock;        //poping operation
     pthread_cond_t pcq_popper_condvar;
 } pc_queue_t;
 
