@@ -21,13 +21,16 @@ int main(int argc, char **argv) {
 	char *server_pipe = argv[1];
 	int max_session = argv[2];
 
-
+	
+	size_t capacity = 100;
 	char server_pipe[MAX_PIPE_NAME];
 	char box_name[MAX_BOX_NAME];
 	uint8_t code;
 	tfs_init(NULL);
 	char **list_boxs;
-
+	pc_queue_t *queue = malloc(sizeof(pc_queue_t));
+	
+	pcq_creat(queue, capacity);
 	//* CREATE NAMED PIPE - <register_pipe_name>
 	/*The named file already exists.*/
 	if (mkfifo(server_pipe,0640)== -1 && errno == EEXIST ) ERROR("Session pipe already exists.");
@@ -66,5 +69,6 @@ int main(int argc, char **argv) {
 
 
 	printf("%s%s%s", server_pipe, server_pipe, box_name);
+	free(queue);
     return -1;
 }
