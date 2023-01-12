@@ -11,7 +11,7 @@ format messages
 send them to the fifo*/
 
 int main(int argc, char **argv) {// TODO check if box already has a publisher
-	if (argc != 3) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
+	if (argc != 4) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
 	char *server_pipe = argv[1];
 	char *session_pipe = argv[2];
 	char *box_name = argv[3];
