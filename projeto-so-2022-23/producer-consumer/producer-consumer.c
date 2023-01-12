@@ -17,7 +17,7 @@
 int pcq_create(pc_queue_t *queue, size_t capacity) {
 	queue->pcq_capacity = capacity;
 	queue->pcq_buffer = (void**) malloc (queue->pcq_capacity * sizeof(void));
-	queue->pcq_head = 0;
+	queue->pcq_head = 0;		
 	queue->pcq_tail = (size_t) -1 ;
 	queue->pcq_current_size  = 0;
 	if (queue->pcq_buffer == NULL){
@@ -65,7 +65,7 @@ int pcq_enqueue(pc_queue_t *queue, void *elem) {
 	if (queue->pcq_tail == queue->pcq_capacity-1){
 		queue->pcq_tail = (size_t) -1;
 	}
-	queue->pcq_tail++;
+	queue->pcq_tail++;								//*ultimo elemento a ser adicionado
 	queue->pcq_buffer[queue->pcq_tail] = elem;
 	queue->pcq_current_size ++;
 	pthread_mutex_unlock(&queue->pcq_current_size_lock);
@@ -75,12 +75,12 @@ int pcq_enqueue(pc_queue_t *queue, void *elem) {
 
 void *pcq_dequeue(pc_queue_t *queue) {
 	pthread_mutex_lock(&queue->pcq_current_size_lock);
-	if (queue->pcq_current_size  == 0){
+	if (queue->pcq_current_size  == 0){							
 		pthread_cond_wait(&queue->pcq_popper_condvar, &queue->pcq_popper_condvar_lock);
 	}
 	else{
 		pthread_mutex_lock(&queue->pcq_head_lock);
-		int value = queue->pcq_buffer[queue->pcq_head++];	//pega o valor e incrementa o primeiro
+		int value = queue->pcq_buffer[queue->pcq_head++];	//*primeiro a ser retirado
 		if(queue->pcq_head == queue->pcq_capacity){
 		queue->pcq_head =0;
 		}
