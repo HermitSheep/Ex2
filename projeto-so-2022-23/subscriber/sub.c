@@ -41,17 +41,20 @@ int main(int argc, char **argv) {
 	int received_messages = 0;
 	ssize_t ret;
 	uint8_t code;
+	fcntl(session_pipe, F_SETFL, O_NONBLOCK) ;
 	while (!session_end) {
 		//*READ
 		ret = read(session_pipe, line, sizeof(line));
-		if (ret == 0) session_end = true;  //*detects EOF
-		else if (ret == -1) ERROR("Failed to read from user input.");
-
-		//*CTRL+C DETECTION
-		if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_FAILURE);
+		if (ret == 0);  //*if EOF do nothing
+		else if (errno == EAGAIN) {
+			session_end = true;
+			printf("Session pipe has been closed.");
+		}
+		else if (errno == EINTR && signal(SIGINT, sig_handler) == SIG_ERR) session_end = true;	//? I assume this detects ctrl c too
+		else ERROR("Unexpected error while reading");
 
 		//*PRINT LINE
-		sscanf(line, "%d%s", &code, message);
+    	sscanf(line, "%2" SCNu8 "%s", &code, message);
 		fprintf(stdout, "%s\n", message);
 
 		received_messages++;

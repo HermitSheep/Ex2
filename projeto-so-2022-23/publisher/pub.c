@@ -38,13 +38,14 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 		//*PLACE CODE
 		uint8_t code = M_PUB;
 
-		//*READS USER INPUT
-		ssize_t ret = read(STDIN_FILENO, message, sizeof(message)); //?idk if this works	(2 because of the code (9) and the |)
-		if (ret == 0)  session_end = true;  //*detects EOF / CTRL+D
-		else if (ret == -1) ERROR("Failed to read from user input.");
+		//*READS USER INPUT (and detect ctrl D)
+		if (fgets(line, sizeof(line), stdin) == NULL) {
+			if (ferror(stdin)) ERROR("Failed to read from user input.");
+			if (feof(stdin)) session_end = true;
+		}
 
-		len = strlen(message);	//backfill message with \0
-		if (len < MAX_MESSAGE) memset(message[len - 1], '\0', MAX_MESSAGE - len);  //(-1 is to remove the final \n. I assume only the last \n needs this)
+		len = strlen(message);
+		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len);  //(-1 is to remove the \n)
 		sprintf(line, "%ld%s", code, message);
 
 		//*SEND LINE TO SERVER
