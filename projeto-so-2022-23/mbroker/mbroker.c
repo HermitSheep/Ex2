@@ -28,9 +28,12 @@ int main(int argc, char **argv) {
 	uint8_t code;
 	tfs_init(NULL);
 	char **list_boxs;
+
+	//*alocation memory
 	pc_queue_t *queue = malloc(sizeof(pc_queue_t));
 	
 	pcq_creat(queue, capacity);
+
 	//* CREATE NAMED PIPE - <register_pipe_name>
 	/*The named file already exists.*/
 	if (mkfifo(server_pipe,0640)== -1 && errno == EEXIST ) ERROR("Session pipe already exists.");
