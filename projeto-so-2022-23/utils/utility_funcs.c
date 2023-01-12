@@ -12,6 +12,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+
+#include "utility_funcs.h"
 #include "logging.h"
 #include "operations.h"
 
@@ -26,19 +28,6 @@ session fifo*/
 #define MAX_REQUEST 256+32+1
 
 
-typedef struct Element{
-    int data;
-    struct Element* next;
-
-};
-
-struct Element* newElement(int data)
-{
-	struct Element* newElement= (struct Element*)malloc(sizeof(struct Element));
-	newElement->data = data;
-	newElement->next = NULL;
-	return newElement;
-}
 
 void insertion_sort(struct Element** head, struct Element* newElement)//function to insert data in sorted position
 {
