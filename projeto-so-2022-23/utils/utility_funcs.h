@@ -38,7 +38,21 @@ typedef enum {		//they're all meant to be unit8_t numbers
 	M_SUB = 10,	//MESSAGE from server to SUBSCRIBER
 } codes;
 
+typedef struct Element{
+    int data;
+    struct Element* next;
 
+};
+
+struct Element* newElement(int data)
+{
+	struct Element* newElement= (struct Element*)malloc(sizeof(struct Element));
+	newElement->data = data;
+	newElement->next = NULL;
+	return newElement;
+};
+
+void insertion_sort(struct Element** head, struct Element* newElement); //function to insert data in sorted position
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx);
 
