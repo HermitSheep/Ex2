@@ -39,14 +39,12 @@ typedef enum {		//they're all meant to be unit8_t numbers
 } codes;
 
 
-typedef enum type{
-	pub = 0,
-	sub = 1,
-} type_client;
-
 typedef struct box{
-	int n_publicher;
-	char bname;
+	uint8_t last;
+	char box_name[MAX_BOX_NAME];
+	uint64_t box_size;
+	uint64_t n_publichers;
+	uint64_t n_subscribers;
 } box;
 
 typedef struct Element{
@@ -54,8 +52,6 @@ typedef struct Element{
     struct Element* next;
 
 };
-
-
 
 
 struct Element* newElement(int data)
