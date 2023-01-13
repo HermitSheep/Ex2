@@ -38,6 +38,13 @@ typedef enum {		//they're all meant to be unit8_t numbers
 	M_SUB = 10,	//MESSAGE from server to SUBSCRIBER
 } codes;
 
+
+typedef enum type{
+	pub = 0,
+	sub = 1,
+} type_client;
+
+
 typedef struct Element{
     int data;
     struct Element* next;
