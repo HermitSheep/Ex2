@@ -1,5 +1,6 @@
 #include "../utils/utility_funcs.h"
 #include "producer-consumer.h"
+#include "codes.c"
 
 /*need to:
 create a fifo (char **argv, server fifo)
@@ -15,7 +16,7 @@ static int sig_handler(int sig) {
 	if (sig == SIGINT) session_end = true;
 	return;
 }
-	
+
 
 int main(int argc, char **argv) {
 	if (argc != 3) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
@@ -66,12 +67,7 @@ int main(int argc, char **argv) {
 	//*PRINT LINE
     	sscanf(line, "%s" , box_name);
 	}
-	//*box_name not exist
-	int bn = open(box_name,O_RDONLY);
-	if(bn == -1) ERROR("Open box name failed");
 
-
-	printf("%s%s%s", server_pipe, server_pipe, box_name);
 	free(queue);
     return -1;
 }
