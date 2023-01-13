@@ -33,10 +33,7 @@ int pcq_create(pc_queue_t *queue, size_t capacity) {
     pthread_mutex_init(&queue->pcq_popper_condvar_lock, NULL);
     pthread_cond_init(&queue->pcq_pusher_condvar, NULL);
     pthread_cond_init(&queue->pcq_popper_condvar, NULL);
-
     return 0;
-
-
 }
 
 int pcq_destroy(pc_queue_t *queue) {	/*usa sempre o primeiro item da fila*/
@@ -62,32 +59,29 @@ int pcq_enqueue(pc_queue_t *queue, void *elem) {
         pthread_cond_wait(&queue->pcq_pusher_condvar, &queue->pcq_pusher_condvar_lock);
     }
 	pthread_mutex_lock(&queue->pcq_tail_lock);
-	if (queue->pcq_tail == queue->pcq_capacity-1){
-		queue->pcq_tail = (size_t) -1;
+	if (queue->pcq_tail == queue->pcq_capacity){
+		queue->pcq_tail = 0;							//goes round back to the first element, makes the list circular
 	}
-	queue->pcq_tail++;								//*ultimo elemento a ser adicionado
-	queue->pcq_buffer[queue->pcq_tail] = elem;
+	else queue->pcq_tail++;								//*ultimo elemento a ser adicionado
+	queue->pcq_buffer[queue->pcq_tail] = elem;		//adds the request after updating the tail position
 	queue->pcq_current_size ++;
 	pthread_mutex_unlock(&queue->pcq_current_size_lock);
 	pthread_mutex_unlock(&queue->pcq_tail_lock);
-
 }
 
 void *pcq_dequeue(pc_queue_t *queue) {
 	pthread_mutex_lock(&queue->pcq_current_size_lock);
-	if (queue->pcq_current_size  == 0){							
+	while (queue->pcq_current_size  == 0) {
 		pthread_cond_wait(&queue->pcq_popper_condvar, &queue->pcq_popper_condvar_lock);
 	}
-	else{
-		pthread_mutex_lock(&queue->pcq_head_lock);
-		int value = queue->pcq_buffer[queue->pcq_head++];	//*primeiro a ser retirado
-		if(queue->pcq_head == queue->pcq_capacity){
-		queue->pcq_head =0;
-		}
+	pthread_mutex_lock(&queue->pcq_head_lock);
+	void *elem = queue->pcq_buffer[queue->pcq_head++];	//removes the request before updating the head position
+	if (queue->pcq_tail == queue->pcq_capacity){
+		queue->pcq_tail = 0;							//goes round back to the first element, makes the list circular
 	}
+	else queue->pcq_head++;							//*primeiro a ser retirado
 	queue->pcq_current_size --;
 	pthread_mutex_unlock(&queue->pcq_popper_condvar_lock);
 	pthread_mutex_unlock(&queue->pcq_head_lock);
-
-
+	return elem;
 }

@@ -9,7 +9,7 @@
 // implementation
 
 typedef struct {
-    void **pcq_buffer;      //request
+    void **pcq_buffer;                                              //request
     size_t pcq_capacity;
 
     pthread_mutex_t pcq_current_size_lock;          //queue lock
