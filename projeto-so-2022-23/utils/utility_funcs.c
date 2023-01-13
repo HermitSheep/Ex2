@@ -23,11 +23,6 @@ void insertion_sort(box* head, box newBox)//function to insert data in sorted po
 	current->next = newBox;
 }
 
-static int sig_handler(int sig) {
-	if (sig == SIGINT) return 0;
-	else return -1;
-}
-
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
     char zero = '\0'; 
     char request[2 + MAX_REQUEST]; //code (1-10) | pipe name | box name \0
@@ -44,5 +39,4 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
     //*SEND REQUEST
     if (write(rx, request, sizeof(request)) < 0) ERROR("Failed to send request to server.");
     return;
-}       //! we should probably make a read request function too, because all the \0's in the middle of the request make it hard for the reader to know when it's truly finished reading
-
+}
