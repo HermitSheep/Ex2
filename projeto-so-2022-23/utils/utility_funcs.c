@@ -67,6 +67,3 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
     return;
 }       //! we should probably make a read request function too, because all the \0's in the middle of the request make it hard for the reader to know when it's truly finished reading
 
-void receive_request(uint8_t code, char *session_pipe, char *box_name, int rx){         //avaliar o request
-
-}   

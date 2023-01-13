@@ -15,6 +15,7 @@ static int sig_handler(int sig) {
 	if (sig == SIGINT) session_end = true;
 	return;
 }
+	
 
 int main(int argc, char **argv) {
 	if (argc != 3) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
