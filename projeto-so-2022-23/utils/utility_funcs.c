@@ -1,53 +1,32 @@
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
-
 #include "utility_funcs.h"
-#include "logging.h"
-#include "operations.h"
 
 /*need to:
 Message: format a string to the specifications in "instruções do projeto"/the proj sheet
 Finish_session: signal the client and worker thread to sleep (maybe through producer-consumer) and close 
 session fifo*/
-
-#define MAX_PIPE_NAME 256
-#define MAX_BOX_NAME 32
-#define MAX_MESSAGE 1024    //for normal and error messages
-#define MAX_REQUEST 256+32+1
-
-
-
-void insertion_sort(struct Element** head, struct Element* newElement)//function to insert data in sorted position
+void insertion_sort(box* head, box newBox)//function to insert data in sorted position
 {
 	//If linked list is empty
-	if (*head == NULL || (*head)->data >= newElement->data)
+	if (*head == NULL || strcmp((*head)->box_name, newBox->box_name) >= 0)
 	{
-		newElement->next = *head;
-		*head = newElement;
+		newBox->next = *head;
+		*head = newBox;
 		return;
 	}
 
 	//Locate the element before insertion
-	struct Element* current = *head;
-	while (current->next != NULL && current->next->data < newElement->data)
+	box current = *head;
+	while (current->next != NULL && strcmp(current->next->box_name, newBox->box_name) < 0)
 		current = current->next;
 
-	newElement->next = current->next;
-	current->next = newElement;
+	newBox->next = current->next;
+	current->next = newBox;
 }
 
+static int sig_handler(int sig) {
+	if (sig == SIGINT) return 0;
+	else return -1;
+}
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
     char zero = '\0'; 

@@ -20,14 +20,14 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
     if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ) ERROR("Session pipe already exists.");
 
 	//*SEND REQUEST TO THE SERVER
-	int rx = open(server_pipe, O_WRONLY);
-	if (rx == -1)  ERROR("Open server pipe failed");
-	send_request(R_PUB, session_pipe, box_name, rx);	//removed the [...]'s to pass the strings (passing for ex box_name[9] might not pass the first 9 characters?)
+	int server_fifo = open(server_pipe, O_WRONLY);
+	if (server_fifo == -1)  ERROR("Open server pipe failed");
+	send_request(R_PUB, session_pipe, box_name, server_fifo);	//removed the [...]'s to pass the strings (passing for ex box_name[9] might not pass the first 9 characters?)
 
 	// open session pipe for writing
 	// this waits for server to open it for reading
-	int tx = open(session_pipe, O_WRONLY);
-	if (tx == -1)  ERROR("Open session pipe failed.");
+	int session_fifo = open(session_pipe, O_WRONLY);
+	if (session_fifo == -1)  ERROR("Open session pipe failed.");
 
 	//*WRITE MESSAGE
 	size_t len = 1;
@@ -46,14 +46,14 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 
 		len = strlen(message);
 		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len);  //(-1 is to remove the \n)
-		sprintf(line, "%ld%s", code, message);
+		sprintf(line, "%1" SCNu8 "%s", code, message);
 
 		//*SEND LINE TO SERVER
-		ssize_t ret = write(tx, line, len);
+		ssize_t ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 	}
 
-	close(tx);
+	close(session_fifo);
 	unlink(session_pipe);
 	return 1;
 }

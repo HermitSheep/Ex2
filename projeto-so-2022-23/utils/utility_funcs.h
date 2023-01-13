@@ -23,6 +23,8 @@
 #define MAX_BOX_NAME 32
 #define MAX_MESSAGE 1024    //for normal and error messages
 #define MAX_REQUEST 256+32+1
+#define BOX_SIZE 1024 
+
 
 
 typedef enum {		//they're all meant to be unit8_t numbers
@@ -39,30 +41,31 @@ typedef enum {		//they're all meant to be unit8_t numbers
 } codes;
 
 
-typedef struct box{
-	uint8_t last;
+typedef struct box_node{	//inside name
 	char box_name[MAX_BOX_NAME];
+	uint8_t last;
 	uint64_t box_size;
-	uint64_t n_publichers;
+	uint64_t n_publishers;
 	uint64_t n_subscribers;
-} box;
+	struct box_node *next;
+}BOX;	//outside name
+typedef BOX *box;	//no need to keep adding *'s
 
-typedef struct Element{
-    int data;
-    struct Element* next;
-
-};
-
-
-struct Element* newElement(int data)
+box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers)
 {
-	struct Element* newElement= (struct Element*)malloc(sizeof(struct Element));
-	newElement->data = data;
-	newElement->next = NULL;
-	return newElement;
+	box newBox= (box)malloc(sizeof(BOX));
+	strcpy(newBox->box_name, name);
+	newBox->last = last;
+	newBox->n_publishers = n_publishers;
+	newBox->n_subscribers = n_subscribers;
+	newBox->box_size = box_size;
+	newBox->next = NULL;
+	return newBox;
 };
 
-void insertion_sort(struct Element** head, struct Element* newElement); //function to insert data in sorted position
+void insertion_sort(box* head, box newBox); //function to insert data in sorted position
+
+static int sig_handler(int sig);
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx);
 
