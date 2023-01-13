@@ -21,7 +21,6 @@ int main(int argc, char **argv) {
 	char *server_pipe = argv[1];
 	int max_session = argv[2];
 
-	
 	size_t capacity = 100;
 	char server_pipe[MAX_PIPE_NAME];
 	char box_name[MAX_BOX_NAME];
