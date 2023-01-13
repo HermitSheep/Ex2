@@ -69,10 +69,10 @@ int main(int argc, char **argv) {
 			sscanf(line,  "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, &last, box_name, &box_size, n_publishers, n_subscribers);
 			aux = newBox_b(box_name, last, box_size, n_publishers, n_subscribers);
 			insertion_sort(head, aux);
-			print == true;
 			if (last == 1) {
 				if (strlen(box_name) == 0) fprintf(stdout, "NO BOXES FOUND\n");
 				session_end = true;
+				print == true;
 			}
 		}
 	}
@@ -80,7 +80,8 @@ int main(int argc, char **argv) {
 		aux = head;
 		do {
 			fprintf(stdout, "%s %zu %zu %zu\n", aux->box_name, aux->box_size, aux->n_publishers, aux->n_subscribers);
-		} while (aux->last != 1);
+			aux = aux->next;
+		} while (aux->next == NULL);
 	}
 
 	close(session_fifo);

@@ -1,6 +1,5 @@
 #include "../utils/utility_funcs.h"
 #include "producer-consumer.h"
-#include "codes.c"
 
 /*need to:
 create a fifo (char **argv, server fifo)
@@ -17,6 +16,14 @@ void sig_handler(int sig) {
 	}
 	else exit(EXIT_FAILURE);
 }
+
+selector(code, session_pipe, box_name);
+
+void codeR_PUB(session_pipe, box_name);
+void codeR_SUB(session_pipe, box_name);
+void codeC_BOX(session_pipe, box_name);
+void codeR_BOX(session_pipe, box_name);
+void codeL_BOX(session_pipe, box_name);
 
 box *head = NULL;	//For the head of the l list to be visible everywhere
 
@@ -75,4 +82,67 @@ int main(int argc, char **argv) {
 	close(server_fifo);
 	unlink(server_pipe);
     return -1;
+}
+
+selector(code, session_pipe, box_name) {
+	while(true){
+		switch (code) {
+			case R_PUB:
+				codeR_PUB(session_pipe, box_name);
+				break;
+			case R_SUB:
+				codeR_SUB(session_pipe, box_name);
+				break;
+			case C_BOX:
+				codeC_BOX(session_pipe, box_name);
+				break;
+			case R_BOX:
+				codeR_BOX(session_pipe, box_name);
+				break;
+			case L_BOX:
+				codeL_BOX(session_pipe, box_name);
+				break;
+			default:
+				ERROR("Impossible code was detected in the server pipe.");
+		}
+	}
+}
+
+void codeR_PUB(char *session_pipe, char *box_name) {
+	int session_fifo = open(session_pipe, O_RDONLY);
+	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+    
+    if (file->n_publishers == 1) {    //there cant be more than one pub to the same box
+        close (session_fifo);
+		return;
+    }
+
+	if(tfs_open(file->box_name, TFS_O_APPEND) == -1) {      //box doesnt 
+        close (session_fifo);
+		return;
+    }
+    
+    //*WRITE MESSAGE
+	ssize_t ret;
+	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 9 (uint8_t) ] | [ message (char[1024]) ]
+	uint8_t code;
+    char *message;
+    bool session_end = false;
+	fcntl(session_fifo, F_SETFL, O_NONBLOCK) ;
+	while (!session_end) {
+		//*READ
+		ret = read(session_fifo, line, sizeof(line));
+		if (ret == 0);  //*if EOF do nothing
+		else if (errno == EAGAIN) {
+			session_end = true;
+			printf("Session pipe has been closed.");
+		}
+		else if (errno == EINTR && signal(SIGINT, sig_handler) == SIG_ERR) session_end = true;
+		else ERROR("Unexpected error while reading");
+
+        //*INTERPRET
+    	sscanf(line, "%2" SCNu8 "%s", &code, message);
+
+        //*WRITE TO BOX
+    }
 }
