@@ -54,16 +54,13 @@ int main(int argc, char **argv) {
 		else ERROR("Unexpected error while reading");
 
 		//*PRINT LINE
-    	sscanf(line, "%2" SCNu8 "%s", &code, server_pipe);
+    	sscanf(line, "%2" SCNu8 "%s%s", &code, server_pipe, box_name);
 				
 		//*READ box_name
 		ret = read(server_pipe, line, sizeof(line));
 		if (ret == 0);  //*if EOF do nothing
 		else if (errno == EINTR && signal(SIGINT, sig_handler) == SIG_ERR) session_end = true;	//? I assume this detects ctrl c too
 		else ERROR("Unexpected error while reading");
-
-	//*PRINT LINE
-    	sscanf(line, "%s" , box_name);
 	}
 	//*box_name not exist
 	int bn = open(box_name,O_RDONLY);
