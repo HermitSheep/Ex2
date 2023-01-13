@@ -44,12 +44,19 @@ typedef enum type{
 	sub = 1,
 } type_client;
 
+typedef struct box{
+	int n_publicher;
+	char bname;
+} box;
 
 typedef struct Element{
     int data;
     struct Element* next;
 
 };
+
+
+
 
 struct Element* newElement(int data)
 {
