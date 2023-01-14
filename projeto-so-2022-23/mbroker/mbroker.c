@@ -208,6 +208,8 @@ void codeC_BOX(char *session_pipe, char *box_name){
 	//* CREATE A BOX and verify if that already exist
 	box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers);
 
+	close(session_fifo);
+	close(session_pipe);
 
 }
 
@@ -223,6 +225,9 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	else{
 		printf("Error: Unable to remove box %s\n");
 	}
+
+	close(session_fifo);
+	close(session_pipe);
 }
 
 void codeL_BOX(char *session_pipe,char * box_name){
@@ -236,5 +241,7 @@ void codeL_BOX(char *session_pipe,char * box_name){
 		printf("%d", current->box_name);
 		current = current->next;
 	}
+	
 	close(session_fifo);
+	close(session_pipe);
 }
