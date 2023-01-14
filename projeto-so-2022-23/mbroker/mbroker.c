@@ -196,14 +196,36 @@ void codeR_SUB(char *session_pipe,char *box_name){
 void codeC_BOX(char *session_pipe, char *box_name){
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
-	typedef BOX *box;
 
+	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
+	char message[MAX_MESSAGE];
+	int len;
 	//* CREATE A BOX and verify if that already exist
-	box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers);
-
-	close(session_fifo);
-	close(session_pipe);
-
+	box session_box = find_box(head, box_name);
+	if (session_box != NULL) {	//box already existed
+		strcpy(message, "Caixa já existe.");
+		len = strlen(message);
+		memset(message+len-1, '\0', MAX_MESSAGE - len);
+		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+		close(session_fifo);
+		return;
+	}
+	else {
+		int box_handle = tfs_open(box_name, TFS_O_CREAT);
+		int close_ret = tfs_close(box_handle);
+		if(box_handle == -1 || close_ret == -1) {      //create box failed
+			strcpy(message, "Erro a criar a caixa.");
+			len = strlen(message);
+			memset(message+len-1, '\0', MAX_MESSAGE - len);
+			sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+			close (session_fifo);
+			return;
+		}
+		box  aux = newBox_b(box_name, (uint8_t) 0, BOX_SIZE, (uint64_t) 0, (uint64_t) 0);	//create box succeeded
+		insertion_sort(head, aux);
+		close(session_fifo);
+	}
+	ERROR("Something went drastically wrong in server create box.");
 }
 
 void codeR_BOX(char *session_pipe,char *box_name){

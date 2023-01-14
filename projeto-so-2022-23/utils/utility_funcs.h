@@ -23,7 +23,7 @@
 #define MAX_BOX_NAME 32
 #define MAX_MESSAGE 1024    //for normal and error messages
 #define MAX_REQUEST 256+32+1
-#define BOX_SIZE 1024 
+#define BOX_SIZE (uint64_t) 1024 
 
 
 

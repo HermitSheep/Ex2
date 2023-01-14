@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
 			if ((int)error_code == -1) fprintf(stdout, "ERROR %s\n", error_message);
 			else fprintf(stdout, "OK\n");
             session_end = true;
+			
         } else {													//has to list all boxes
 			sscanf(line,  "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, &last, box_name, &box_size, n_publishers, n_subscribers);
 			aux = newBox_b(box_name, last, box_size, n_publishers, n_subscribers);
