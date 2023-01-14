@@ -165,39 +165,32 @@ void codeR_SUB(char *session_pipe,char *box_name){
 		return;
     }
 	int box_handle = tfs_open(session_box->box_name, TFS_O_APPEND);
-	if(box_handle == -1) {      //box doesnt 
+	if(box_handle == -1) {      //box doesnt exist
         close (session_fifo);
 		return;
     }
 	//* PRINT MESSAGE
 	size_t len = 1;
 	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
-	char *message;
-	int received_messages = 0;
+	char message[MAX_MESSAGE];
 	ssize_t ret;
-	uint8_t code;
-	fcntl(session_fifo, F_SETFL, O_NONBLOCK) ;	//to have the read signal if the session pipe was closed
-	while (!server_running) {
+    bool session_end = false;
+	int len;
+	while (!session_end) {
 		//*READ
-		ret = read(session_fifo, line, sizeof(line));
+		ret = tfs_read(box_handle, message, sizeof(message));
 		if (ret == 0);  //*if EOF do nothing
-		else if (errno == EAGAIN) {		//session pipe was closed
-			server_running = true;
-			printf("Session pipe has been closed.");
-		}
-		else if (errno == EINTR) ERROR("Unexpected error while reading");	//read failed
+		else ERROR("Server failed in reading from the box");
+		len = strlen(message);
+		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len); 
 
 		//*PRINT LINE
-    	sscanf(line, "%2" SCNu8 "%s", &code, message);
-		fprintf(stdout, "%s\n", message);
-
-		received_messages++;
+    	sprintf(line, "%2" SCNu8 "%s", M_SUB, message);
+		ret = write(session_fifo, line, len);
+		if (ret < 0)  ERROR("Write failed.");
 	}
-
-	fprintf(stdout, "%d messages  were received.\n", received_messages);
-
+	tfs_close(box_handle);
 	close(session_fifo);
-	close(session_pipe);
 }
 
 void codeC_BOX(char *session_pipe, char *box_name){

@@ -28,16 +28,16 @@
 
 
 typedef enum {		//they're all meant to be unit8_t numbers
-	R_PUB = 1,	//REGISTER PUBLISHER
-	R_SUB = 2,	//REGISTER SUBSCRIBER
-	C_BOX = 3,	//CREATE BOX
-	R_C_BOX = 4,	//RESPONSE TO CREATE BOX
-	R_BOX = 5,	//REMOVE BOX
-	R_D_BOX = 6,	//RESPONSE TO DELETE BOX
-	L_BOX = 7,	//LIST BOXES
-	R_L_BOX = 8,	//RESPONSE TO LIST BOXES
-	M_PUB = 9, 	//MESSAGE from PUBLISHER to server
-	M_SUB = 10,	//MESSAGE from server to SUBSCRIBER
+	R_PUB = (uint8_t) 1,	//REGISTER PUBLISHER
+	R_SUB = (uint8_t) 2,	//REGISTER SUBSCRIBER
+	C_BOX = (uint8_t) 3,	//CREATE BOX
+	R_C_BOX = (uint8_t) 4,	//RESPONSE TO CREATE BOX
+	R_BOX = (uint8_t) 5,	//REMOVE BOX
+	R_D_BOX = (uint8_t) 6,	//RESPONSE TO DELETE BOX
+	L_BOX = (uint8_t) 7,	//LIST BOXES
+	R_L_BOX = (uint8_t) 8,	//RESPONSE TO LIST BOXES
+	M_PUB = (uint8_t) 9, 	//MESSAGE from PUBLISHER to server
+	M_SUB = (uint8_t) 10,	//MESSAGE from server to SUBSCRIBER
 } codes;
 
 
