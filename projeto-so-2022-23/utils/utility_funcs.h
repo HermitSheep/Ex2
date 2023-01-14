@@ -67,6 +67,8 @@ void insertion_sort(box* head, box newBox); //function to insert data in sorted 
 
 box find_box(box *head, char* box_name);
 
+box remove_box(box *head, char* box_name);
+
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx);
 
 #endif  // __UTILS_FUNCS_H__

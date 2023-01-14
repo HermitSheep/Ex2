@@ -243,7 +243,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 
 void codeR_BOX(char *session_pipe,char *box_name){
 	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
-	char message[MAX_MESSinscodeR_BOXAGE];
+	char message[MAX_MESSAGE];
 	int len;
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
@@ -259,7 +259,7 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		return;
 	}
 	else {
-
+		
 	}
 
 	close(session_fifo);
