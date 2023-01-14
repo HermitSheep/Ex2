@@ -46,11 +46,14 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 
 		len = strlen(message);
 		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len);  //(-1 is to remove the \n)
-		sprintf(line, "%1" SCNu8 "%s", code, message);
 		memcpy(line + len, code, sizeof(code));
 		len += sizeof(code);
 		memcpy(line + len,message,sizeof(message));
 		len += sizeof(message);
+		memcpy(line + len, "\0", sizeof("\0"));
+
+
+
 
 		//*SEND LINE TO SERVER
 		ssize_t ret = write(session_fifo, line, len);

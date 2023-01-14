@@ -19,10 +19,10 @@
 #include "logging.h"
 #include "operations.h"
 
-#define MAX_PIPE_NAME 256
-#define MAX_BOX_NAME 32
-#define MAX_MESSAGE 1024    //for normal and error messages
-#define MAX_REQUEST 256+32+1
+#define MAX_PIPE_NAME 256 + 1
+#define MAX_BOX_NAME 32 +1
+#define MAX_MESSAGE 1024 +1     //for normal and error messages
+#define MAX_REQUEST MAX_BOX_NAME+MAX_FILE_NAME
 #define BOX_SIZE (uint64_t) 1024 
 
 

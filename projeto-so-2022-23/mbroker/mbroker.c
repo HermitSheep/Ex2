@@ -185,7 +185,10 @@ void codeR_SUB(char *session_pipe,char *box_name){
 		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len); 
 
 		//*PRINT LINE
-    	sprintf(line, "%2" SCNu8 "%s", M_SUB, message);
+    	//sprintf(line, "%2" SCNu8 "%s", M_SUB, message);
+		memcpy(line + len, message, sizeof(message));
+		len += sizeof(message);
+		memcpy(line + len, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 	}
@@ -297,6 +300,20 @@ void codeL_BOX(char *session_pipe,char * box_name){
 		memset(box_n, '\0', sizeof(box_n));
 		last = 1;
 		sprintf(line, "%1" SCNu8 "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, R_L_BOX, last, aux->box_name, (uint64_t) 0, (uint64_t) 0, (uint64_t) 0);
+		memcpy(line + size, R_L_BOX, sizeof(R_L_BOX));
+		size += sizeof(R_L_BOX);
+		memcpy(line + size, last, sizeof(last));
+		size += sizeof(last);
+		memcpy(line + size, aux->box_name, sizeof(aux->box_name));
+		size += sizeof(aux->box_name);
+		memcpy(line + size, (uint64_t) 0, sizeof((uint64_t) 0));
+		size += sizeof((uint64_t) 0);
+		memcpy(line + size, (uint64_t) 0, sizeof((uint64_t) 0));
+		size += sizeof((uint64_t) 0);
+		memcpy(line + size, '\0', sizeof('\0'));
+		
+
+
 		ssize_t ret = write(session_fifo, line, sizeof(line));
 		if (ret < 0)  ERROR("Write failed.");
 	}
