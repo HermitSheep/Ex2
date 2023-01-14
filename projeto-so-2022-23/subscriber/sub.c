@@ -57,8 +57,10 @@ int main(int argc, char **argv) {
 
 		//*PRINT LINE
     	sscanf(line, "%2" SCNu8 "%s", &code, message);
-		fprintf(stdout, "%s\n", message);
 
+		fprintf(stdout, "%s\n", message);
+		//memcpy(line + len, message, sizeof(message));
+		
 		received_messages++;
 	}
 
