@@ -242,28 +242,46 @@ void codeC_BOX(char *session_pipe, char *box_name){
 }
 
 void codeR_BOX(char *session_pipe,char *box_name){
-	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
+	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	int len;
+	ssize_t ret;
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
 
-	//*REMOVE A BOX
-	int ret = tfs_remove(box_name);		//function in c that we can remove the name of the directory to be removed
+	//*Box never existed to begin with
+	box session_box = find_box(head, box_name);
+	if (session_box == NULL) {	//box doesn't exist to begin with
+		strcpy(message, "Caixa não existe.");
+		len = strlen(message);
+		memset(message+len-1, '\0', MAX_MESSAGE - len);
+		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+		ret = write(session_fifo, line, len);
+		if (ret < 0)  ERROR("Write failed.");
+
+		close(session_fifo);
+		return;
+	}
+	//*REMOVE BOX
+	ret = tfs_remove(box_name);		//function in c that we can remove the name of the directory to be removed
 	if (ret == -1) {      //remove box failed
 		strcpy(message, "Erro a remover a caixa.");
 		len = strlen(message);
 		memset(message+len-1, '\0', MAX_MESSAGE - len);
-		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_R_BOX, (int32_t) -1, message);
 		close (session_fifo);
 		return;
 	}
-	else {
-		
+	else {	//remove box succeeded
+		remove_box(head, box_name);	//removes box from the lit of boxes
+		memset(message, '\0', MAX_MESSAGE);
+		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_R_BOX, (int32_t) 0, message);
+		ret = write(session_fifo, line, len);
+		if (ret < 0)  ERROR("Write failed.");
+		close(session_fifo);
+		return;
 	}
-
-	close(session_fifo);
-	close(session_pipe);
+	ERROR("Something went drastically wrong in server remove box.");
 }
 
 void codeL_BOX(char *session_pipe,char * box_name){

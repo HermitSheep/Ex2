@@ -33,7 +33,7 @@ typedef enum {		//they're all meant to be unit8_t numbers
 	C_BOX = (uint8_t) 3,	//CREATE BOX
 	R_C_BOX = (uint8_t) 4,	//RESPONSE TO CREATE BOX
 	R_BOX = (uint8_t) 5,	//REMOVE BOX
-	R_D_BOX = (uint8_t) 6,	//RESPONSE TO DELETE BOX
+	R_R_BOX = (uint8_t) 6,	//RESPONSE TO REMOVE BOX
 	L_BOX = (uint8_t) 7,	//LIST BOXES
 	R_L_BOX = (uint8_t) 8,	//RESPONSE TO LIST BOXES
 	M_PUB = (uint8_t) 9, 	//MESSAGE from PUBLISHER to server
@@ -67,7 +67,7 @@ void insertion_sort(box* head, box newBox); //function to insert data in sorted 
 
 box find_box(box *head, char* box_name);
 
-box remove_box(box *head, char* box_name);
+bool remove_box(box *head, char* box_name);
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx);
 

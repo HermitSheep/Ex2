@@ -38,19 +38,25 @@ box find_box(box *head, char* box_name) {
     else return NULL;
 }
 
-box remove_box(box *head, char* box_name) {
-    //Encontra a celula com o elemento procurado
+bool remove_box(box *head, char* box_name) {
     box aux;
     bool found = false;
+    bool success = false;
     aux = *head;
-    while(!found && aux != NULL){
-        if(strcmp(aux->box_name, box_name)) 
-            found=true;
-        else 
-            aux=aux->next;
+    if (strcmp(aux->box_name, box_name) == 0) { //if it's the first element of the list
+        head = aux->next;
+        success = true;
+        return success;
     }
-    if(found) return aux;
-    else return NULL;
+    while(!found && aux != NULL) {      //if it's some other element
+        if(strcmp(aux->next->box_name, box_name) == 0) {
+            found=true;
+            aux->next = aux->next->next;
+            success = true;
+            return success;
+        }
+    }
+    return success;
 }
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
