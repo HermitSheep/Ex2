@@ -111,13 +111,17 @@ selector(code, session_pipe, box_name) {
 void codeR_PUB(char *session_pipe, char *box_name) {
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+
+	box session_box = find_box(head, box_name);
     
-    if (file->n_publishers == 1) {    //there cant be more than one pub to the same box
+    if (session_box->n_publishers == 1) {    //there cant be more than one pub to the same box
         close (session_fifo);
 		return;
     }
+	else session_box->n_publishers = 1;
 
-	if(tfs_open(file->box_name, TFS_O_APPEND) == -1) {      //box doesnt 
+	int box_handle = tfs_open(session_box->box_name, TFS_O_APPEND);
+	if(box_handle == -1) {      //box doesnt 
         close (session_fifo);
 		return;
     }
@@ -137,12 +141,15 @@ void codeR_PUB(char *session_pipe, char *box_name) {
 			session_end = true;
 			printf("Session pipe has been closed.");
 		}
-		else if (errno == EINTR && signal(SIGINT, sig_handler) == SIG_ERR) session_end = true;
 		else ERROR("Unexpected error while reading");
 
         //*INTERPRET
     	sscanf(line, "%2" SCNu8 "%s", &code, message);
 
         //*WRITE TO BOX
+		tfs_write(box_handle, message, strlen(message) + 1);
     }
+	
+	tfs_close(box_handle);
+	close(session_fifo);
 }

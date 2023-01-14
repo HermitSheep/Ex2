@@ -23,6 +23,21 @@ void insertion_sort(box* head, box newBox)//function to insert data in sorted po
 	current->next = newBox;
 }
 
+box find_box(box *head, char* box_name) {
+    //Encontra a celula com o elemento procurado
+    box aux;
+    bool found = false;
+    aux = *head;
+    while(!found && aux != NULL){
+        if(strcmp(aux->box_name, box_name)) 
+            found=true;
+        else 
+            aux=aux->next;
+    }
+    if(found) return aux;
+    else return NULL;
+}
+
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
     char zero = '\0'; 
     char request[2 + MAX_REQUEST]; //code (1-10) | pipe name | box name \0

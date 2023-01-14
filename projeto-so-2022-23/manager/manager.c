@@ -51,6 +51,7 @@ int main(int argc, char **argv) {
 	bool print = false;		//if we need to print the list of boxes
 	box *head = NULL;
 	box aux;
+	box aux2;
 
     bool session_end = false;
 	while (!session_end) {
@@ -78,9 +79,12 @@ int main(int argc, char **argv) {
 	}
 	if (print) {
 		aux = head;
+		aux2 = aux;
 		do {
 			fprintf(stdout, "%s %zu %zu %zu\n", aux->box_name, aux->box_size, aux->n_publishers, aux->n_subscribers);
 			aux = aux->next;
+			free(aux2);
+			aux2 = aux;
 		} while (aux->next == NULL);
 	}
 

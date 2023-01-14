@@ -65,6 +65,8 @@ box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers,
 
 void insertion_sort(box* head, box newBox); //function to insert data in sorted position
 
+box find_box(box *head, char* box_name);
+
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx);
 
 #endif  // __UTILS_FUNCS_H__
