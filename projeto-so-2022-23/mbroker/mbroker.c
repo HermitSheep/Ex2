@@ -17,13 +17,13 @@ void sig_handler(int sig) {
 	else exit(EXIT_FAILURE);
 }
 
-selector(code, session_pipe, box_name);
+void selector(uint8_t code, char *session_pipe, char *box_name);
 
-void codeR_PUB(session_pipe, box_name);
-void codeR_SUB(session_pipe, box_name);
-void codeC_BOX(session_pipe, box_name);
-void codeR_BOX(session_pipe, box_name);
-void codeL_BOX(session_pipe, box_name);
+void codeR_PUB(char *session_pipe, char *box_name);
+void codeR_SUB(char *session_pipe, char *box_name);
+void codeC_BOX(char *session_pipe, char *box_name);
+void codeR_BOX(char *session_pipe, char *box_name);
+void codeL_BOX(char *session_pipe, char *box_name);
 
 box *head = NULL;	//For the head of the l list to be visible everywhere
 
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
     return -1;
 }
 
-selector(code, session_pipe, box_name) {
+void selector(uint8_t code, char *session_pipe, char *box_name) {
 	while(true){
 		switch (code) {
 			case R_PUB:
@@ -183,13 +183,12 @@ void codeR_SUB(char *session_pipe,char *box_name){
 		if (ret == 0);  //*if EOF do nothing
 		else ERROR("Server failed in reading from the box");
 		len = strlen(message);
-		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len); 
+		if (len < MAX_MESSAGE) memset(message+len-1, 0, MAX_MESSAGE - len); 
 
 		//*PRINT LINE
 		memcpy(line + size, M_SUB, sizeof(M_SUB));
 		size += sizeof(M_SUB);
 		memcpy(line + size, message, sizeof(message));
-		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 	}
@@ -211,14 +210,13 @@ void codeC_BOX(char *session_pipe, char *box_name){
 	if (session_box != NULL) {	//box already existed
 		strcpy(message, "Caixa já existe.");
 		len = strlen(message);
-		memset(message+len-1, '\0', MAX_MESSAGE - len);
+		memset(message+len-1, 0, MAX_MESSAGE - len);
 		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
 		size += sizeof(R_R_BOX);
 		memcpy(line + size, (int32_t) -1, sizeof((int32_t) -1));
 		size += sizeof((int32_t) -1);
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
-		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 
@@ -231,14 +229,13 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		if(box_handle == -1 || close_ret == -1) {      //create box failed
 			strcpy(message, "Erro a criar a caixa.");
 			len = strlen(message);
-			memset(message+len-1, '\0', MAX_MESSAGE - len);
+			memset(message+len-1, 0, MAX_MESSAGE - len);
 			memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
 			size += sizeof(R_R_BOX);
 			memcpy(line + size, (int32_t) -1, sizeof((int32_t) -1));
 			size += sizeof((int32_t) -1);
 			memcpy(line + size, message, sizeof(message));
 			size += sizeof(message);
-			memcpy(line + size, '\0', sizeof('\0'));
 			ret = write(session_fifo, line, len);
 			if (ret < 0)  ERROR("Write failed.");
 
@@ -248,14 +245,13 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		box  aux = newBox_b(box_name, (uint8_t) 0, BOX_SIZE, (uint64_t) 0, (uint64_t) 0);	//create box succeeded
 		insertion_sort(head, aux);
 
-		memset(message, '\0', MAX_MESSAGE);		//create box succeeded
+		memset(message, 0, MAX_MESSAGE);		//create box succeeded
 		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
 		size += sizeof(R_R_BOX);
 		memcpy(line + size, (int32_t) 0, sizeof((int32_t) 0));
 		size += sizeof((int32_t) 0);
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
-		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 
@@ -278,7 +274,7 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	if (session_box == NULL) {	//box doesn't exist to begin with
 		strcpy(message, "Caixa não existe.");
 		len = strlen(message);
-		memset(message+len-1, '\0', MAX_MESSAGE - len);
+		memset(message+len-1, 0, MAX_MESSAGE - len);
 		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
 		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
 		size += sizeof(R_R_BOX);
@@ -286,7 +282,6 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		size += sizeof((int32_t) -1);
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
-		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 		close(session_fifo);
@@ -297,14 +292,13 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	if (ret == -1) {      //remove box failed
 		strcpy(message, "Erro a remover a caixa.");
 		len = strlen(message);
-		memset(message+len-1, '\0', MAX_MESSAGE - len);
+		memset(message+len-1, 0, MAX_MESSAGE - len);
 		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
 		size += sizeof(R_R_BOX);
 		memcpy(line + size, (int32_t) -1, sizeof((int32_t) -1));
 		size += sizeof((int32_t) -1);
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
-		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 		close (session_fifo);
@@ -312,14 +306,13 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	}
 	else {	//remove box succeeded
 		remove_box(head, box_name);	//removes box from the lit of boxes
-		memset(message, '\0', MAX_MESSAGE);
+		memset(message, 0, MAX_MESSAGE);
 		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
 		size += sizeof(R_R_BOX);
 		memcpy(line + size, (int32_t) 0, sizeof((int32_t) 0));
 		size += sizeof((int32_t) 0);
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
-		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 		close(session_fifo);
@@ -339,7 +332,7 @@ void codeL_BOX(char *session_pipe,char * box_name){
 	int size = 0;
 	if (aux == NULL) {
 		char box_n[MAX_BOX_NAME + 1];
-		memset(box_n, '\0', sizeof(box_n));
+		memset(box_n, 0, sizeof(box_n));
 		last = 1;
 		memcpy(line + size, R_L_BOX, sizeof(R_L_BOX));
 		size += sizeof(R_L_BOX);
@@ -353,7 +346,6 @@ void codeL_BOX(char *session_pipe,char * box_name){
 		size += sizeof(aux->n_publishers);
 		memcpy(line + size, aux->n_subscribers, sizeof(aux->n_subscribers));
 		size += sizeof(aux->n_subscribers);
-		memcpy(line + size, '\0', sizeof('\0'));
 		ssize_t ret = write(session_fifo, line, sizeof(line));
 		if (ret < 0)  ERROR("Write failed.");
 	}
@@ -371,7 +363,6 @@ void codeL_BOX(char *session_pipe,char * box_name){
 		size += sizeof(aux->n_publishers);
 		memcpy(line + size, aux->n_subscribers, sizeof(aux->n_subscribers));
 		size += sizeof(aux->n_subscribers);
-		memcpy(line + size, '\0', sizeof('\0'));
 		
 		ssize_t ret = write(session_fifo, line, sizeof(line));
 		if (ret < 0)  ERROR("Write failed.");
