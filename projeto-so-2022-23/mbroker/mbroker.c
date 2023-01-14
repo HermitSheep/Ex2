@@ -176,6 +176,7 @@ void codeR_SUB(char *session_pipe,char *box_name){
 	ssize_t ret;
     bool session_end = false;
 	int len;
+	int size = 0;
 	while (!session_end) {
 		//*READ
 		ret = tfs_read(box_handle, message, sizeof(message));
@@ -185,10 +186,10 @@ void codeR_SUB(char *session_pipe,char *box_name){
 		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len); 
 
 		//*PRINT LINE
-    	//sprintf(line, "%2" SCNu8 "%s", M_SUB, message);
-		memcpy(line + len, message, sizeof(message));
-		len += sizeof(message);
-		memcpy(line + len, '\0', sizeof('\0'));
+		memcpy(line + size, M_SUB, sizeof(M_SUB));
+		size += sizeof(M_SUB);
+		memcpy(line + size, message, sizeof(message));
+		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 	}
@@ -198,6 +199,7 @@ void codeR_SUB(char *session_pipe,char *box_name){
 
 void codeC_BOX(char *session_pipe, char *box_name){
 	int session_fifo = open(session_pipe, O_RDONLY);
+	int size = 0;
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
 
 	char line[sizeof(uint8_t) + MAX_MESSAGE + 1];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
@@ -210,7 +212,13 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		strcpy(message, "Caixa já existe.");
 		len = strlen(message);
 		memset(message+len-1, '\0', MAX_MESSAGE - len);
-		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
+		size += sizeof(R_R_BOX);
+		memcpy(line + size, (int32_t) -1, sizeof((int32_t) -1));
+		size += sizeof((int32_t) -1);
+		memcpy(line + size, message, sizeof(message));
+		size += sizeof(message);
+		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 
@@ -224,7 +232,13 @@ void codeC_BOX(char *session_pipe, char *box_name){
 			strcpy(message, "Erro a criar a caixa.");
 			len = strlen(message);
 			memset(message+len-1, '\0', MAX_MESSAGE - len);
-			sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+			memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
+			size += sizeof(R_R_BOX);
+			memcpy(line + size, (int32_t) -1, sizeof((int32_t) -1));
+			size += sizeof((int32_t) -1);
+			memcpy(line + size, message, sizeof(message));
+			size += sizeof(message);
+			memcpy(line + size, '\0', sizeof('\0'));
 			ret = write(session_fifo, line, len);
 			if (ret < 0)  ERROR("Write failed.");
 
@@ -235,7 +249,13 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		insertion_sort(head, aux);
 
 		memset(message, '\0', MAX_MESSAGE);		//create box succeeded
-		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) 0, message);
+		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
+		size += sizeof(R_R_BOX);
+		memcpy(line + size, (int32_t) 0, sizeof((int32_t) 0));
+		size += sizeof((int32_t) 0);
+		memcpy(line + size, message, sizeof(message));
+		size += sizeof(message);
+		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 
@@ -248,6 +268,7 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	char line[sizeof(uint8_t) + MAX_MESSAGE + 1];	//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	int len;
+	int size = 0;
 	ssize_t ret;
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
@@ -259,6 +280,13 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		len = strlen(message);
 		memset(message+len-1, '\0', MAX_MESSAGE - len);
 		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
+		size += sizeof(R_R_BOX);
+		memcpy(line + size, (int32_t) -1, sizeof((int32_t) -1));
+		size += sizeof((int32_t) -1);
+		memcpy(line + size, message, sizeof(message));
+		size += sizeof(message);
+		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 		close(session_fifo);
@@ -270,14 +298,28 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		strcpy(message, "Erro a remover a caixa.");
 		len = strlen(message);
 		memset(message+len-1, '\0', MAX_MESSAGE - len);
-		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_R_BOX, (int32_t) -1, message);
+		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
+		size += sizeof(R_R_BOX);
+		memcpy(line + size, (int32_t) -1, sizeof((int32_t) -1));
+		size += sizeof((int32_t) -1);
+		memcpy(line + size, message, sizeof(message));
+		size += sizeof(message);
+		memcpy(line + size, '\0', sizeof('\0'));
+		ret = write(session_fifo, line, len);
+		if (ret < 0)  ERROR("Write failed.");
 		close (session_fifo);
 		return;
 	}
 	else {	//remove box succeeded
 		remove_box(head, box_name);	//removes box from the lit of boxes
 		memset(message, '\0', MAX_MESSAGE);
-		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_R_BOX, (int32_t) 0, message);
+		memcpy(line + size, R_R_BOX, sizeof(R_R_BOX));
+		size += sizeof(R_R_BOX);
+		memcpy(line + size, (int32_t) 0, sizeof((int32_t) 0));
+		size += sizeof((int32_t) 0);
+		memcpy(line + size, message, sizeof(message));
+		size += sizeof(message);
+		memcpy(line + size, '\0', sizeof('\0'));
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
 		close(session_fifo);
@@ -299,27 +341,24 @@ void codeL_BOX(char *session_pipe,char * box_name){
 		char box_n[MAX_BOX_NAME + 1];
 		memset(box_n, '\0', sizeof(box_n));
 		last = 1;
-		sprintf(line, "%1" SCNu8 "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, R_L_BOX, last, aux->box_name, (uint64_t) 0, (uint64_t) 0, (uint64_t) 0);
 		memcpy(line + size, R_L_BOX, sizeof(R_L_BOX));
 		size += sizeof(R_L_BOX);
 		memcpy(line + size, last, sizeof(last));
 		size += sizeof(last);
 		memcpy(line + size, aux->box_name, sizeof(aux->box_name));
 		size += sizeof(aux->box_name);
-		memcpy(line + size, (uint64_t) 0, sizeof((uint64_t) 0));
-		size += sizeof((uint64_t) 0);
-		memcpy(line + size, (uint64_t) 0, sizeof((uint64_t) 0));
-		size += sizeof((uint64_t) 0);
+		memcpy(line + size, aux->box_size, sizeof(aux->box_size));
+		size += sizeof(aux->box_size);
+		memcpy(line + size, aux->n_publishers, sizeof(aux->n_publishers));
+		size += sizeof(aux->n_publishers);
+		memcpy(line + size, aux->n_subscribers, sizeof(aux->n_subscribers));
+		size += sizeof(aux->n_subscribers);
 		memcpy(line + size, '\0', sizeof('\0'));
-		
-
-
 		ssize_t ret = write(session_fifo, line, sizeof(line));
 		if (ret < 0)  ERROR("Write failed.");
 	}
 	while (aux != NULL) {
 		if (aux->next == NULL) last = 1;
-		sprintf(line, "%1" SCNu8 "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, R_L_BOX, last, aux->box_name, aux->box_size, aux->n_publishers, aux->n_subscribers);
 		memcpy(line + size, R_L_BOX, sizeof(R_L_BOX));
 		size += sizeof(R_L_BOX);
 		memcpy(line + size, last, sizeof(last));
