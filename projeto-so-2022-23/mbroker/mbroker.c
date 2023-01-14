@@ -291,6 +291,7 @@ void codeL_BOX(char *session_pipe,char * box_name){
 	char line[sizeof(uint8_t)*2 + MAX_BOX_NAME + sizeof(uint64_t)*3 + 1]; //[ code = 8 (uint8_t) ] | [ last (uint8_t) ] | [ box_name (char[32]) ] | [ box_size (uint64_t) ] | [ n_publishers (uint64_t) ] | [ n_subscribers (uint64_t) ]
 	box aux = head;
 	uint8_t last = 0;
+	int size = 0;
 	if (aux == NULL) {
 		char box_n[MAX_BOX_NAME + 1];
 		memset(box_n, '\0', sizeof(box_n));
@@ -302,6 +303,20 @@ void codeL_BOX(char *session_pipe,char * box_name){
 	while (aux != NULL) {
 		if (aux->next == NULL) last = 1;
 		sprintf(line, "%1" SCNu8 "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, R_L_BOX, last, aux->box_name, aux->box_size, aux->n_publishers, aux->n_subscribers);
+		memcpy(line + size, R_L_BOX, sizeof(R_L_BOX));
+		size += sizeof(R_L_BOX);
+		memcpy(line + size, last, sizeof(last));
+		size += sizeof(last);
+		memcpy(line + size, aux->box_name, sizeof(aux->box_name));
+		size += sizeof(aux->box_name);
+		memcpy(line + size, aux->box_size, sizeof(aux->box_size));
+		size += sizeof(aux->box_size);
+		memcpy(line + size, aux->n_publishers, sizeof(aux->n_publishers));
+		size += sizeof(aux->n_publishers);
+		memcpy(line + size, aux->n_subscribers, sizeof(aux->n_subscribers));
+		size += sizeof(aux->n_subscribers);
+		memcpy(line + size, '\0', sizeof('\0'));
+		
 		ssize_t ret = write(session_fifo, line, sizeof(line));
 		if (ret < 0)  ERROR("Write failed.");
 		aux = aux->next;
