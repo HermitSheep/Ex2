@@ -38,6 +38,27 @@ box find_box(box *head, char* box_name) {
     else return NULL;
 }
 
+bool remove_box(box *head, char* box_name) {
+    box aux;
+    bool found = false;
+    bool success = false;
+    aux = *head;
+    if (strcmp(aux->box_name, box_name) == 0) { //if it's the first element of the list
+        head = aux->next;
+        success = true;
+        return success;
+    }
+    while(!found && aux != NULL) {      //if it's some other element
+        if(strcmp(aux->next->box_name, box_name) == 0) {
+            found=true;
+            aux->next = aux->next->next;
+            success = true;
+            return success;
+        }
+    }
+    return success;
+}
+
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
     char zero = '\0'; 
     char request[2 + MAX_REQUEST]; //code (1-10) | pipe name | box name \0
