@@ -50,7 +50,6 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 		len += sizeof(code);
 		memcpy(line + len,message,sizeof(message));
 		len += sizeof(message);
-		memcpy(line + len, "\0", sizeof("\0"));
 
 
 

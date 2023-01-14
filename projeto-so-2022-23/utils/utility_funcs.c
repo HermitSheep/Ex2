@@ -60,14 +60,12 @@ bool remove_box(box *head, char* box_name) {
 }
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
-    char zero = '\0'; 
+    char zero = 0; 
     char request[2 + MAX_REQUEST]; //code (1-10) | pipe name | box name \0
     //*BACKFILL NAMES
     if (strlen(session_pipe) <= MAX_PIPE_NAME){
-        session_pipe[MAX_PIPE_NAME] = '\0';     //makes sure the max size isn't exceeded
         session_pipe += zero * (MAX_PIPE_NAME - strlen(session_pipe));      //backfills names
     }if (strlen(box_name)< MAX_BOX_NAME){
-        session_pipe[MAX_PIPE_NAME] = '\0';
         box_name += zero * (MAX_BOX_NAME - strlen(box_name));
     }
     //*FORMAT REQUEST
