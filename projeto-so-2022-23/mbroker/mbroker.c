@@ -128,7 +128,7 @@ void codeR_PUB(char *session_pipe, char *box_name) {
     
     //*WRITE MESSAGE
 	ssize_t ret;
-	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 9 (uint8_t) ] | [ message (char[1024]) ]
+	char line[sizeof(uint8_t) + MAX_MESSAGE + 1];	//[ code = 9 (uint8_t) ] | [ message (char[1024]) ]
 	uint8_t code;
     char *message;
     bool session_end = false;
@@ -171,8 +171,8 @@ void codeR_SUB(char *session_pipe,char *box_name){
     }
 	//* PRINT MESSAGE
 	size_t len = 1;
-	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
-	char message[MAX_MESSAGE];
+	char line[sizeof(uint8_t) + MAX_MESSAGE + 1];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
+	char message[MAX_MESSAGE + 1];
 	ssize_t ret;
     bool session_end = false;
 	int len;
@@ -197,7 +197,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
 
-	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
+	char line[sizeof(uint8_t) + MAX_MESSAGE + 1];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	int len;
 	ssize_t ret;
@@ -242,7 +242,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 }
 
 void codeR_BOX(char *session_pipe,char *box_name){
-	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
+	char line[sizeof(uint8_t) + MAX_MESSAGE + 1];	//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	int len;
 	ssize_t ret;
@@ -258,7 +258,6 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
 		ret = write(session_fifo, line, len);
 		if (ret < 0)  ERROR("Write failed.");
-
 		close(session_fifo);
 		return;
 	}
@@ -289,11 +288,23 @@ void codeL_BOX(char *session_pipe,char * box_name){
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
 
 	//*PRINT LINKED LIST
-	struct box_node *head = NULL;
-	struct box_node *current = head;
-	while (current != NULL){
-		printf("%d", current->box_name);
-		current = current->next;
+	char line[sizeof(uint8_t)*2 + MAX_BOX_NAME + sizeof(uint64_t)*3 + 1]; //[ code = 8 (uint8_t) ] | [ last (uint8_t) ] | [ box_name (char[32]) ] | [ box_size (uint64_t) ] | [ n_publishers (uint64_t) ] | [ n_subscribers (uint64_t) ]
+	box aux = head;
+	uint8_t last = 0;
+	if (aux == NULL) {
+		char box_n[MAX_BOX_NAME + 1];
+		memset(box_n, '\0', sizeof(box_n));
+		last = 1;
+		sprintf(line, "%1" SCNu8 "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, R_L_BOX, last, aux->box_name, (uint64_t) 0, (uint64_t) 0, (uint64_t) 0);
+		ssize_t ret = write(session_fifo, line, sizeof(line));
+		if (ret < 0)  ERROR("Write failed.");
+	}
+	while (aux != NULL) {
+		if (aux->next == NULL) last = 1;
+		sprintf(line, "%1" SCNu8 "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, R_L_BOX, last, aux->box_name, aux->box_size, aux->n_publishers, aux->n_subscribers);
+		ssize_t ret = write(session_fifo, line, sizeof(line));
+		if (ret < 0)  ERROR("Write failed.");
+		aux = aux->next;
 	}
 	
 	close(session_fifo);
