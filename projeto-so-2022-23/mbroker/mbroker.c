@@ -200,6 +200,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	int len;
+	ssize_t ret;
 	//* CREATE A BOX and verify if that already exist
 	box session_box = find_box(head, box_name);
 	if (session_box != NULL) {	//box already existed
@@ -207,6 +208,9 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		len = strlen(message);
 		memset(message+len-1, '\0', MAX_MESSAGE - len);
 		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+		ret = write(session_fifo, line, len);
+		if (ret < 0)  ERROR("Write failed.");
+
 		close(session_fifo);
 		return;
 	}
@@ -218,27 +222,44 @@ void codeC_BOX(char *session_pipe, char *box_name){
 			len = strlen(message);
 			memset(message+len-1, '\0', MAX_MESSAGE - len);
 			sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+			ret = write(session_fifo, line, len);
+			if (ret < 0)  ERROR("Write failed.");
+
 			close (session_fifo);
 			return;
 		}
 		box  aux = newBox_b(box_name, (uint8_t) 0, BOX_SIZE, (uint64_t) 0, (uint64_t) 0);	//create box succeeded
 		insertion_sort(head, aux);
+
+		memset(message, '\0', MAX_MESSAGE);		//create box succeeded
+		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) 0, message);
+		ret = write(session_fifo, line, len);
+		if (ret < 0)  ERROR("Write failed.");
+
 		close(session_fifo);
 	}
 	ERROR("Something went drastically wrong in server create box.");
 }
 
 void codeR_BOX(char *session_pipe,char *box_name){
+	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
+	char message[MAX_MESSinscodeR_BOXAGE];
+	int len;
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
 
 	//*REMOVE A BOX
-	int box = rmdir(box_name);		//function in c that we can remove the name of the directory to be removed
-	if (box ==0){
-		printf("Box %s remove\n", box_name);
+	int ret = tfs_remove(box_name);		//function in c that we can remove the name of the directory to be removed
+	if (ret == -1) {      //remove box failed
+		strcpy(message, "Erro a remover a caixa.");
+		len = strlen(message);
+		memset(message+len-1, '\0', MAX_MESSAGE - len);
+		sprint(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
+		close (session_fifo);
+		return;
 	}
-	else{
-		printf("Error: Unable to remove box %s\n");
+	else {
+
 	}
 
 	close(session_fifo);
