@@ -16,7 +16,7 @@ static void print_usage() {
 }
 
 int main(int argc, char **argv) {
-	if (argc <3 || argc > 5){
+	if (argc <3 || argc > 5){		//verify the only char can be there 
         print_usage();
 		printf("%d", argc);
 		return 1;
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     char *instruction = argv[3];
 	char *box_name = argv[4];
 
-	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);
+	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);		//for control-C
 
 	printf("server %s session %s instruction %s box %s argc %d\n", server_pipe, session_pipe, instruction, box_name, argc);
 
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 	}
 
     //* PRINT MESSAGE
-	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
+	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE];			//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	ssize_t ret;
 
 	int32_t error_code;
@@ -80,6 +80,7 @@ int main(int argc, char **argv) {
 	
 
 	while (!session_end) {
+		
 		//*READ (doesn't check for pipe closure because that's not a normal behavior here)
 		
 		ret = read(session_fifo, &request, sizeof(request));
