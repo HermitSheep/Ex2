@@ -72,13 +72,13 @@ int main(int argc, char **argv) {
 	//* READ REQUEST
 	server_running = true;
 	ssize_t ret;
-	Request req;
+	req request;
 	fcntl(server_fifo, F_SETFL, O_NONBLOCK) ;	//to have the read signal if the session pipe was closed
 	while (server_running) {
 		printf("end? %s\n", (server_running ? "true" : "false"));
 		//*READ code and session_pipe
 
-		ret = read(server_fifo, &req, sizeof(req));//[ code = ? (uint8_t) ] | [ client_named_path (char[256]) | box_name(char[32]) ]
+		ret = read(server_fifo, &request, sizeof(request));//[ code = ? (uint8_t) ] | [ client_named_path (char[256]) | box_name(char[32]) ]
 		if (ret == 0);  //*if EOF do nothing
 		else if (errno == EINTR) {
 			fprintf(stderr, "Error wile reading request.\n");
@@ -90,8 +90,8 @@ int main(int argc, char **argv) {
 		}	//read failed
     	
 
-		printf("code %d, pipe %s, box %s\n", req.code, req.session_pipe, req.box_name);
-		selector(req.code, req.session_pipe, req.box_name);
+		printf("code %d, pipe %s, box %s\n", request->code, request->session_pipe, request->box_name);
+		selector(request->code, request->session_pipe, request->box_name);
 		printf("went to the selector.");
 	}
 	free(queue);
@@ -239,7 +239,6 @@ void codeR_SUB(char *session_pipe,char *box_name){
 void codeC_BOX(char *session_pipe, char *box_name){
 	printf("it entered the func\n");
 	int session_fifo = open(session_pipe, O_WRONLY);
-	unsigned long int size = 0;
 	if (session_fifo == -1)  {
 			fprintf(stderr, "Failed to open manager pipe (create). %s\n", session_pipe);
 			server_running = false;
@@ -385,7 +384,7 @@ void codeL_BOX(char *session_pipe){
 	char line[sizeof(uint8_t)*2 + MAX_BOX_NAME + sizeof(uint64_t)*3 + 1]; //[ code = 8 (uint8_t) ] | [ last (uint8_t) ] | [ box_name (char[32]) ] | [ box_size (uint64_t) ] | [ n_publishers (uint64_t) ] | [ n_subscribers (uint64_t) ]
 	
 	uint8_t last = 0;
-	unsigned long int size = 0;
+	
 	if (head == NULL){
 		char box_n[MAX_BOX_NAME + 1];
 		memset(box_n, 0, sizeof(box_n));
