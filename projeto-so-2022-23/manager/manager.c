@@ -80,10 +80,13 @@ int main(int argc, char **argv) {
 	box *head = NULL;
 	box aux;
 	box aux2;
+	req request;
+	
 
 	while (!session_end) {
 		//*READ (doesn't check for pipe closure because that's not a normal behavior here)
-		ret = read(session_fifo, line, sizeof(line));
+		
+		ret = read(session_fifo, &request, sizeof(request));
 		if (ret == -1) {
 			fprintf(stderr, "Read from session pipe failed.\n");
 			close(server_fifo);
@@ -91,18 +94,20 @@ int main(int argc, char **argv) {
 			unlink(session_pipe);
 			return 1;
 		}
+
+		code = request->code;
+		error_code = request->return_code;
+		strcpy(error_message, request->error_message);
 		
 		//*PRINT LINE
    		sscanf(line, "%1" SCNu8, &code);
 		if ((int)code == 4 || (int)code == 6) {		//response from box creation/deletion
-			sscanf(line, "%2"SCNd32 "%s", &error_code, error_message);
 			if ((int)error_code == -1) fprintf(stdout, "ERROR %s\n", error_message);
 			else fprintf(stdout, "OK\n");
             session_end = true;
 			
         } else {													//has to list all boxes
-			sscanf(line,  "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, &last, box_name, &box_size, &n_publishers, &n_subscribers);
-			aux = newBox_b(box_name, last, box_size, n_publishers, n_subscribers);
+			aux = newBox_b(request->boxa->box_name, request->boxa->last, request->boxa->box_size, request->boxa->n_publishers, request->boxa->n_subscribers);
 			insertion_sort(head, aux);
 			if (last == 1) {
 				if (strlen(box_name) == 0) {
