@@ -3,10 +3,20 @@
 int main () {
     //char code_c[2];
     uint8_t code;
-    char instruction[] = "create";
-    if (strcmp(instruction, "create"))  code = C_BOX;
-    else if (strcmp(instruction, "remove")) code = R_BOX;
-    else if (strcmp(instruction, "list")) code = L_BOX;
+    char *instruction;
+    instruction = "create";
+    if (strcmp(instruction, "create"))  {
+        code = C_BOX;
+        printf("create\n");
+    }
+    else if (strcmp(instruction, "remove")) {
+        code = R_BOX;
+        printf("remove\n");
+    }
+    else if (strcmp(instruction, "list")) {
+        code = L_BOX;
+        printf("list\n");
+    }
 	printf("code: %d\n", code);
 
     char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]

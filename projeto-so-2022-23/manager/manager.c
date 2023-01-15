@@ -39,6 +39,8 @@ int main(int argc, char **argv) {
     else if (strcmp(instruction, "list")) code = L_BOX;
 	send_request(code, session_pipe, box_name, server_fifo);
 
+	printf("%d\n", code);
+
 	// open pipe for writing
 	// this waits for someone to open it for reading
 	int session_fifo = open(session_pipe, O_RDONLY);

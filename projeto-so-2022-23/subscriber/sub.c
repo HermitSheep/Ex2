@@ -25,24 +25,26 @@ int main(int argc, char **argv) {
         print_usage();
 		return 1;
 	}
-	char *server_pipe = argv[0];
-	char *session_pipe = argv[1];
-	char *box_name = argv[2];
+	char *server_pipe = argv[1];
+	char *session_pipe = argv[2];
+	char *box_name = argv[3];
 
 	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);
 
 	//*CREATE SESSION PIPE
     /*The named file already exists.*/
     if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ){
-		fprint(stderr,"Session pipe already exists.\n");
-		return; 
+		fprintf(stderr,"Session pipe already exists.\n");
+		return 1; 
 
 	}
 	//*SEND REQUEST TO THE SERVER
 	int server_fifo = open(server_pipe, O_WRONLY);
 	if (server_fifo == -1){
 		fprintf(stderr, "Open server pipe failed.\n");
-		unlink(server_pipe);
+		unlink(session_pipe);
+		return 1;
+	}
 
     send_request(R_SUB, session_pipe, box_name, server_fifo);
 
@@ -71,7 +73,7 @@ int main(int argc, char **argv) {
 			printf("Session pipe has been closed.");
 		}
 		else if (errno == EINTR){
-			fprint("Unexpected error while reading.\n");	//read failed
+			fprintf(stderr, "Unexpected error while reading.\n");	//read failed
 			close(session_fifo);
 			unlink(session_pipe);
 		}

@@ -9,7 +9,7 @@ publisher func: read from session fifo and write to the tfs file/box
 subscriber func: read from the tfs file/box and write to the session fifo
 manager: accomplish request (...)
 */
-bool server_running = true;
+bool server_running;
 void sig_handler(int sig) {
 	if (sig == SIGINT) {
 		server_running = false;
@@ -73,11 +73,13 @@ int main(int argc, char **argv) {
 	}
 	
 
-	//* PRINT MESSAGE
+	//* READ REQUEST
+	server_running = true;
 	char line[sizeof(uint8_t) + MAX_REQUEST];	//[ code = ? (uint8_t) ] | [ client_named_path (char[256]) | box_name(char[32]) ]
 	ssize_t ret;
 	fcntl(server_fifo, F_SETFL, O_NONBLOCK) ;	//to have the read signal if the session pipe was closed
 	while (server_running) {
+		printf("end? %s\n", server_running ? "true" : "false");
 		//*READ code and session_pipe
 		ret = read(server_fifo, line, sizeof(line));
 		if (ret == 0);  //*if EOF do nothing
@@ -105,7 +107,8 @@ int main(int argc, char **argv) {
 		}
 		
     	sscanf(line, "%s" , box_name);
-
+		printf("end? %s\n", server_running ? "true" : "false");
+		printf("%d\n", code);
 		selector(code, session_pipe, box_name);
 	}
 	free(queue);
@@ -116,35 +119,33 @@ int main(int argc, char **argv) {
 }
 
 void selector(uint8_t code, char *session_pipe, char *box_name) {
-	while(true){
-		switch (code) {
-			case R_PUB:
-				codeR_PUB(session_pipe, box_name);
-				break;
-			case R_SUB:
-				codeR_SUB(session_pipe, box_name);
-				break;
-			case C_BOX:
-				codeC_BOX(session_pipe, box_name);
-				break;
-			case R_BOX:
-				codeR_BOX(session_pipe, box_name);
-				break;
-			case L_BOX:
-				codeL_BOX(session_pipe);
-				break;
-			default:
-				fprintf(stderr, "Inexistent code selected.\n");
-				server_running = false;
-				break;
-		}
+	switch (code) {
+		case R_PUB:
+			codeR_PUB(session_pipe, box_name);
+			break;
+		case R_SUB:
+			codeR_SUB(session_pipe, box_name);
+			break;
+		case C_BOX:
+			codeC_BOX(session_pipe, box_name);
+			break;
+		case R_BOX:
+			codeR_BOX(session_pipe, box_name);
+			break;
+		case L_BOX:
+			codeL_BOX(session_pipe);
+			break;
+		default:
+			fprintf(stderr, "Inexistent code selected.\n");
+			server_running = false;
+			break;
 	}
 }
 
 void codeR_PUB(char *session_pipe, char *box_name) {
 	int session_fifo = open(session_pipe, O_WRONLY);
 	if (session_fifo == -1)  {
-			fprintf(stderr, "Failed to open session pipe.\n");
+			fprintf(stderr, "Failed to open publisher pipe.\n");
 			server_running = false;
 			return;
 		}
@@ -199,7 +200,7 @@ void codeR_PUB(char *session_pipe, char *box_name) {
 void codeR_SUB(char *session_pipe,char *box_name){
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  {
-			fprintf(stderr, "Failed to open session pipe.\n");
+			fprintf(stderr, "Failed to open subscriber pipe.\n");
 			server_running = false;
 			return;
 		}
@@ -254,7 +255,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 	int session_fifo = open(session_pipe, O_RDONLY);
 	unsigned long int size = 0;
 	if (session_fifo == -1)  {
-			fprintf(stderr, "Failed to open session pipe.\n");
+			fprintf(stderr, "Failed to open manager pipe (create).\n");
 			server_running = false;
 			return;
 		}
@@ -341,7 +342,7 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	ssize_t ret;
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  {
-			fprintf(stderr, "Failed to open session pipe.\n");
+			fprintf(stderr, "Failed to open manager pipe (remove).\n");
 			server_running = false;
 			return;
 		}
@@ -416,7 +417,7 @@ void codeR_BOX(char *session_pipe,char *box_name){
 void codeL_BOX(char *session_pipe){
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  {
-			fprintf(stderr, "Failed to open session pipe.\n");
+			fprintf(stderr, "Failed to open manager pipe. (list)\n");
 			server_running = false;
 			return;
 		}
