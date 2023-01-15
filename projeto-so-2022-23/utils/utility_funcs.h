@@ -46,7 +46,7 @@ typedef struct box_node{	//inside name
 	uint64_t n_publishers;
 	uint64_t n_subscribers;
 	struct box_node *next;
-}BOX;	//outside name
+}BOX;	//outside name, only one box
 typedef BOX *box;	//no need to keep adding *'s
 
 
@@ -58,13 +58,13 @@ typedef struct request{
 	char error_message[MAX_MESSAGE];
 	box boxa;
 
-}Request;
+}Request;	//only one request and the terms i need accordingly if we are talking aboute publishers, subscribers, managers or servers
 
 box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers);
 
 Request newRequest(uint8_t code, char *session_pipe_name, char *box_name,int32_t return_code, char *error_message);
 
-void insertion_sort(box* head, box newBox); //function to insert data in sorted position
+void insertion_sort(box* head, box newBox); //function to insert data in sorted position and sorted a linked list(is more easier to move elements)
 
 box find_box(box *head, char* box_name);
 
