@@ -41,7 +41,9 @@ int main(int argc, char **argv) {
 	//char *max_s = argv[2];
 	//int max_session = atoi(max_s);
 
-	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);
+	if (signal(SIGINT, sig_handler) == SIG_ERR) {
+		return 1;
+	}
 
 	char session_pipe[MAX_PIPE_NAME];
 	char box_name[MAX_BOX_NAME];
@@ -57,11 +59,18 @@ int main(int argc, char **argv) {
 
 	//* CREATE NAMED PIPE - <register_pipe_name>
 	/*The named file already exists.*/
-	if (mkfifo(server_pipe,0640)== -1 && errno == EEXIST ) ERROR("Session pipe already exists.");
+	if (mkfifo(server_pipe,0640)== -1 && errno == EEXIST ) {
+		fprintf(stderr, "Create server pipe failed, %s\n", server_pipe);
+		return 1;
+	}
 
 	//OPEN PIPE IN MODE READ
 	int server_fifo = open(server_pipe, O_RDONLY);
-	if (server_fifo == -1)  ERROR("Open server pipe failed");
+	if (server_fifo == -1)  {
+		fprintf(stderr, "Open server pipe failed, %s\n", server_pipe);
+		unlink(server_pipe);
+		return 1;
+	}
 	
 
 	//* PRINT MESSAGE
@@ -72,14 +81,28 @@ int main(int argc, char **argv) {
 		//*READ code and session_pipe
 		ret = read(server_fifo, line, sizeof(line));
 		if (ret == 0);  //*if EOF do nothing
-		else if (errno == EINTR) ERROR("Unexpected error while reading");	//read failed
+		else if (errno == EINTR) {
+			fprintf(stderr, "Error wile reading request.\n");
+			free(queue);
+			tfs_close(tfs_handle);
+			close(server_fifo);
+			unlink(server_pipe);
+			return 1;
+		}	//read failed
 
     	sscanf(line, "%2" SCNu8 "%s", &code, session_pipe);
 
 		//*READ box_name
 		ret = read(server_fifo, line, sizeof(line));
 		if (ret == 0);
-		else if (errno == EINTR) ERROR("Unexpected error while reading");
+		else if (errno == EINTR) {
+			fprintf(stderr, "Error wile reading request.\n");
+			free(queue);
+			tfs_close(tfs_handle);
+			close(server_fifo);
+			unlink(server_pipe);
+			return 1;
+		}
 		
     	sscanf(line, "%s" , box_name);
 
@@ -111,14 +134,20 @@ void selector(uint8_t code, char *session_pipe, char *box_name) {
 				codeL_BOX(session_pipe);
 				break;
 			default:
-				ERROR("Impossible code was detected in the server pipe.");
+				fprintf(stderr, "Inexistent code selected.\n");
+				server_running = false;
+				break;
 		}
 	}
 }
 
 void codeR_PUB(char *session_pipe, char *box_name) {
 	int session_fifo = open(session_pipe, O_WRONLY);
-	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+	if (session_fifo == -1)  {
+			fprintf(stderr, "Failed to open session pipe.\n");
+			server_running = false;
+			return;
+		}
 
 	box session_box = find_box(head, box_name);
     
@@ -150,7 +179,11 @@ void codeR_PUB(char *session_pipe, char *box_name) {
 			session_end = true;
 			printf("Session pipe has been closed.");
 		}
-		else ERROR("Unexpected error while reading");
+		else {
+			fprintf(stderr, "Unexpected error when reading from session pipe.\n");
+			server_running = false;
+			return;
+		}
 
         //*INTERPRET
     	sscanf(line, "%2" SCNu8 "%s", &code, message);
@@ -165,7 +198,11 @@ void codeR_PUB(char *session_pipe, char *box_name) {
 
 void codeR_SUB(char *session_pipe,char *box_name){
 	int session_fifo = open(session_pipe, O_RDONLY);
-	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+	if (session_fifo == -1)  {
+			fprintf(stderr, "Failed to open session pipe.\n");
+			server_running = false;
+			return;
+		}
 
 	box session_box = find_box(head, box_name);
     
@@ -189,7 +226,11 @@ void codeR_SUB(char *session_pipe,char *box_name){
 		//*READ
 		ret = tfs_read(box_handle, message, sizeof(message));
 		if (ret == 0);  //*if EOF do nothing
-		else ERROR("Server failed in reading from the box");
+		else {
+			fprintf(stderr, "Server failed to read from the box.\n");
+			server_running = false;
+			return;
+		}
 		len = strlen(message);
 		if (len < MAX_MESSAGE) memset(message+len-1, 0, MAX_MESSAGE - len); 
 
@@ -199,7 +240,11 @@ void codeR_SUB(char *session_pipe,char *box_name){
 		size += sizeof(code);
 		memcpy(line + size, message, sizeof(message));
 		ret = write(session_fifo, line, sizeof(line));
-		if (ret < 0)  ERROR("Write failed.");
+		if (ret < 0)  {
+			fprintf(stderr, "Server failed to write to the pipe.\n");
+			server_running = false;
+			return;
+		}
 	}
 	tfs_close(box_handle);
 	close(session_fifo);
@@ -208,7 +253,11 @@ void codeR_SUB(char *session_pipe,char *box_name){
 void codeC_BOX(char *session_pipe, char *box_name){
 	int session_fifo = open(session_pipe, O_RDONLY);
 	unsigned long int size = 0;
-	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+	if (session_fifo == -1)  {
+			fprintf(stderr, "Failed to open session pipe.\n");
+			server_running = false;
+			return;
+		}
 
 	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE + 1];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
@@ -228,7 +277,11 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
 		ret = write(session_fifo, line, sizeof(line));
-		if (ret < 0)  ERROR("Write failed.");
+		if (ret < 0) {
+			fprintf(stderr, "Server failed to write to the pipe.\n");
+			server_running = false;
+			return;
+		}
 
 		close(session_fifo);
 		return;
@@ -248,7 +301,11 @@ void codeC_BOX(char *session_pipe, char *box_name){
 			memcpy(line + size, message, sizeof(message));
 			size += sizeof(message);
 			ret = write(session_fifo, line, sizeof(line));
-			if (ret < 0)  ERROR("Write failed.");
+			if (ret < 0)  {
+				fprintf(stderr, "Server failed to write to the pipe.\n");
+				server_running = false;
+				return;
+			}
 
 			close (session_fifo);
 			return;
@@ -265,7 +322,11 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
 		ret = write(session_fifo, line, sizeof(line));
-		if (ret < 0)  ERROR("Write failed.");
+		if (ret < 0)  {
+			fprintf(stderr, "Server failed to write to the pipe.\n");
+			server_running = false;
+			return;
+		}
 
 		close(session_fifo);
 	}
@@ -279,7 +340,11 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	unsigned long int size = 0;
 	ssize_t ret;
 	int session_fifo = open(session_pipe, O_RDONLY);
-	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+	if (session_fifo == -1)  {
+			fprintf(stderr, "Failed to open session pipe.\n");
+			server_running = false;
+			return;
+		}
 
 	//*Box never existed to begin with
 	box session_box = find_box(head, box_name);
@@ -296,7 +361,11 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
 		ret = write(session_fifo, line, sizeof(line));
-		if (ret < 0)  ERROR("Write failed.");
+		if (ret < 0)  {
+			fprintf(stderr, "Server failed to write to the pipe.\n");
+			server_running = false;
+			return;
+		}
 		close(session_fifo);
 		return;
 	}
@@ -314,7 +383,11 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
 		ret = write(session_fifo, line, sizeof(line));
-		if (ret < 0)  ERROR("Write failed.");
+		if (ret < 0)  {
+			fprintf(stderr, "Server failed to write to the pipe.\n");
+			server_running = false;
+			return;
+		}
 		close (session_fifo);
 		return;
 	}
@@ -329,7 +402,11 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
 		ret = write(session_fifo, line, sizeof(line));
-		if (ret < 0)  ERROR("Write failed.");
+		if (ret < 0)  {
+			fprintf(stderr, "Server failed to write to the pipe.\n");
+			server_running = false;
+			return;
+		}
 		close(session_fifo);
 		return;
 	}
@@ -338,7 +415,11 @@ void codeR_BOX(char *session_pipe,char *box_name){
 
 void codeL_BOX(char *session_pipe){
 	int session_fifo = open(session_pipe, O_RDONLY);
-	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+	if (session_fifo == -1)  {
+			fprintf(stderr, "Failed to open session pipe.\n");
+			server_running = false;
+			return;
+		}
 
 	//*PRINT LINKED LIST
 	char line[sizeof(uint8_t)*2 + MAX_BOX_NAME + sizeof(uint64_t)*3 + 1]; //[ code = 8 (uint8_t) ] | [ last (uint8_t) ] | [ box_name (char[32]) ] | [ box_size (uint64_t) ] | [ n_publishers (uint64_t) ] | [ n_subscribers (uint64_t) ]
@@ -363,7 +444,11 @@ void codeL_BOX(char *session_pipe){
 		memcpy(line + size, &(int64_t){0}, sizeof(int64_t));
 		size += sizeof(int64_t);
 		ssize_t ret = write(session_fifo, line, sizeof(line));
-		if (ret < 0)  ERROR("Write failed.");
+		if (ret < 0)  {
+			fprintf(stderr, "Server failed to write to the pipe.\n");
+			server_running = false;
+			return;
+		}
 	}
 	while (aux != NULL) {
 		if (aux->next == NULL) last = 1;
@@ -382,7 +467,11 @@ void codeL_BOX(char *session_pipe){
 		size += sizeof(aux->n_subscribers);
 
 		ssize_t ret = write(session_fifo, line, sizeof(line));
-		if (ret < 0)  ERROR("Write failed.");
+		if (ret < 0)  {
+			fprintf(stderr, "Server failed to write to the pipe.\n");
+			server_running = false;
+			return;
+		}
 		aux = aux->next;
 	}
 	

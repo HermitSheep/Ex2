@@ -20,9 +20,9 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
         print_usage();
 		return 1;
 	}
-	char *server_pipe = argv[1];
-	char *session_pipe = argv[2];
-	char *box_name = argv[3];
+	char *server_pipe = argv[0];
+	char *session_pipe = argv[1];
+	char *box_name = argv[2];
 	//*CREATE SESSION PIPE
     /*The named file already exists.*/
     if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ){
