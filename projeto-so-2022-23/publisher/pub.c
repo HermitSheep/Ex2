@@ -25,17 +25,31 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 	char *box_name = argv[2];
 	//*CREATE SESSION PIPE
     /*The named file already exists.*/
-    if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ) ERROR("Session pipe already exists.");
+    if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ){
+		fprintf(stderr, "Session pipe already exists.\n");
+		close(session_pipe);
+		unlink(session_pipe);
+	}
 
 	//*SEND REQUEST TO THE SERVER
 	int server_fifo = open(server_pipe, O_WRONLY);
-	if (server_fifo == -1)  ERROR("Open server pipe failed");
+	if (server_fifo == -1) {
+		fprintf(stderr,"Open server pipe failed.\n");
+		close(server_fifo);
+		close(server_pipe);
+		unlink(server_pipe);
+	}
 	send_request(R_PUB, session_pipe, box_name, server_fifo);	//removed the [...]'s to pass the strings (passing for ex box_name[9] might not pass the first 9 characters?)
 
 	// open session pipe for writing
 	// this waits for server to open it for reading
 	int session_fifo = open(session_pipe, O_WRONLY);
-	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+	if (session_fifo == -1){
+		fprintf(stderr, "Open session pipe failed.\n");
+		close(session_fifo);
+		close(session_pipe);
+		unlink(session_pipe);
+	}
 
 	//*WRITE MESSAGE
 	size_t len = 1;

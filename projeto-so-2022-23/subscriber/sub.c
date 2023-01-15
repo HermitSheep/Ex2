@@ -33,8 +33,12 @@ int main(int argc, char **argv) {
 
 	//*CREATE SESSION PIPE
     /*The named file already exists.*/
-    if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ) ERROR("Session pipe already exists.");
+    if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ){
+		fprint(stderr,"Session pipe already exists.\n");
+		close(session_pipe);
+		unlink(session_pipe);
 
+	}
 	//*SEND REQUEST TO THE SERVER
 	int server_fifo = open(server_pipe, O_WRONLY);
 	if (server_fifo == -1) ERROR("Open server pipe failed");
@@ -60,8 +64,12 @@ int main(int argc, char **argv) {
 			server_running = true;
 			printf("Session pipe has been closed.");
 		}
-		else if (errno == EINTR) ERROR("Unexpected error while reading");	//read failed
-
+		else if (errno == EINTR){
+			fprint("Unexpected error while reading.\n");	//read failed
+			close(server_fifo);
+			close(session_fifo);
+			unlink(session_pipe);
+		}
 		//*PRINT LINE
     	sscanf(line, "%2" SCNu8 "%s", &code, message);
 
