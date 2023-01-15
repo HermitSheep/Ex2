@@ -57,6 +57,7 @@ typedef struct request{
 	int32_t return_code;
 	char error_message[MAX_MESSAGE];
 }Request;
+typedef Request *req; 
 
 box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers);
 

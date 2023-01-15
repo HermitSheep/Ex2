@@ -257,14 +257,9 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		len = strlen(message);
 		memset(message+len-1, 0, MAX_MESSAGE - len);
 		uint8_t code = R_R_BOX;
-		memcpy(line + size, &code, sizeof(code));
-		size += sizeof(code);
-		memcpy(line + size, &(int32_t){-1}, sizeof(int32_t));
-		size += sizeof(int32_t);
-		memcpy(line + size, message, sizeof(message));
-		size += sizeof(message);
+		req request = newRequest((uint8_t) code, NULL, NULL,-1, message);
 		printf("it is going to write\n");
-		ret = write(session_fifo, line, sizeof(line));
+		ret = write(session_fifo, &request, sizeof(request));
 		if (ret < 0) {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -280,15 +275,10 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		if(box_handle == -1 || close_ret == -1) {      //create box failed
 			strcpy(message, "Erro a criar a caixa.");
 			len = strlen(message);
-			memset(message+len-1, 0, MAX_MESSAGE - len);
 			uint8_t code = R_R_BOX;
-			memcpy(line + size, &code, sizeof(code));
-			size += sizeof(code);
-			memcpy(line + size, &(int32_t){-1}, sizeof(int32_t));
-			size += sizeof(int32_t);
-			memcpy(line + size, message, sizeof(message));
-			size += sizeof(message);
-			ret = write(session_fifo, line, sizeof(line));
+			req request = newRequest((uint8_t) code, NULL, NULL,-1, message);
+			memset(message+len-1, 0, MAX_MESSAGE - len);
+			ret = write(session_fifo, &request, sizeof(request));
 			if (ret < 0)  {
 				fprintf(stderr, "Server failed to write to the pipe.\n");
 				server_running = false;
@@ -303,13 +293,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 
 		memset(message, 0, MAX_MESSAGE);		//create box succeeded
 		uint8_t code = R_R_BOX;
-		memcpy(line + size, &code, sizeof(code));
-		size += sizeof(code);
-		memcpy(line + size, &(int32_t){0}, sizeof(int32_t));
-		size += sizeof(int32_t);
-		memcpy(line + size, message, sizeof(message));
-		size += sizeof(message);
-		ret = write(session_fifo, line, sizeof(line));
+		ret = write(session_fifo, &aux, sizeof(aux));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
