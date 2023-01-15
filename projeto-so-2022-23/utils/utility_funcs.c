@@ -17,16 +17,16 @@ box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers,
 	return newBox;
 };
 
-req newRequest(uint8_t code, char *session_pipe_name, char *box_name,int32_t return_code, char *error_message){
-    req newrequest; 
-    strcpy(newrequest->session_pipe, session_pipe_name);
-    strcpy(newrequest->box_name, box_name);
-    newrequest->return_code = return_code;
-    newrequest->code = code;
-    strcpy(newrequest->error_message, error_message);
+Request newRequest(uint8_t code, char *session_pipe_name, char *box_name, int32_t return_code, char *error_message) {
+    Request newrequest;
+    strcpy(newrequest.session_pipe, session_pipe_name);
+    strcpy(newrequest.box_name, box_name);
+    newrequest.return_code = return_code;
+    newrequest.code = code;
+    strcpy(newrequest.error_message, error_message);
     return newrequest;
+}
 
-};
 
 void insertion_sort(box* head, box newBox)//function to insert data in sorted position
 {
@@ -87,7 +87,6 @@ bool remove_box(box *head, char* box_name) {
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
     size_t zero = 0; 
-    req request; //code (1-10) | pipe name | box name \0
 
     //*BACKFILL NAMES
     if (strlen(session_pipe) <= MAX_PIPE_NAME){
@@ -95,10 +94,10 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
     }if (strlen(box_name) < MAX_BOX_NAME){
         box_name += zero * (MAX_BOX_NAME - strlen(box_name));
     }
+    
     //*FORMAT REQUEST
-    request->code = code;
-    strcpy(request->session_pipe, session_pipe);
-    strcpy(request->box_name, box_name);
+    Request request = newRequest(code, session_pipe, box_name, 0, NULL); //code (1-10) | pipe name | box name \0
+
     //*SEND REQUEST
     if (write(rx, &request, sizeof(request)) < 0) ERROR("Failed to send request to server.");
     return;

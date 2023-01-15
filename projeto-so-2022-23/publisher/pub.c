@@ -75,7 +75,7 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 
 		len = strlen(message);
 		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len);  //(-1 is to remove the \n)
-		req r = newRequest((uint8_t) code, NULL, NULL,NULL, message);
+		Request r = newRequest((uint8_t) code, NULL, NULL,0, message);
 
 
 

@@ -71,16 +71,13 @@ int main(int argc, char **argv) {
 	int32_t error_code;
 	char error_message[MAX_MESSAGE];
 
-	uint8_t last;
-	uint64_t box_size;
-	uint64_t n_publishers;
-	uint64_t n_subscribers;
+	uint8_t last = 0;
 
 	bool print = false;		//if we need to print the list of boxes
 	box *head = NULL;
 	box aux;
 	box aux2;
-	req request;
+	Request request;
 	
 
 	while (!session_end) {
@@ -95,9 +92,9 @@ int main(int argc, char **argv) {
 			return 1;
 		}
 
-		code = request->code;
-		error_code = request->return_code;
-		strcpy(error_message, request->error_message);
+		code = request.code;
+		error_code = request.return_code;
+		strcpy(error_message, request.error_message);
 		
 		//*PRINT LINE
    		sscanf(line, "%1" SCNu8, &code);
@@ -107,7 +104,7 @@ int main(int argc, char **argv) {
             session_end = true;
 			
         } else {													//has to list all boxes
-			aux = newBox_b(request->boxa->box_name, request->boxa->last, request->boxa->box_size, request->boxa->n_publishers, request->boxa->n_subscribers);
+			aux = newBox_b(request.boxa->box_name, request.boxa->last, request.boxa->box_size, request.boxa->n_publishers, request.boxa->n_subscribers);
 			insertion_sort(head, aux);
 			if (last == 1) {
 				if (strlen(box_name) == 0) {
