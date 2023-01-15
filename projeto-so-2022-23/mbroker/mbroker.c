@@ -202,7 +202,7 @@ void codeR_SUB(char *session_pipe,char *box_name){
 		return;
     }
 	//* PRINT MESSAGE
-	char line[sizeof(uint8_t) + MAX_MESSAGE + 1];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
+	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
 	char message[MAX_MESSAGE + 1];
 	ssize_t ret;
     bool session_end = false;
@@ -291,7 +291,6 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		insertion_sort(head, aux);
 
 		memset(message, 0, MAX_MESSAGE);		//create box succeeded
-		uint8_t code = R_R_BOX;
 		ret = write(session_fifo, &aux, sizeof(aux));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
