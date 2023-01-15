@@ -45,10 +45,6 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	char session_pipe[MAX_PIPE_NAME];
-	char box_name[MAX_BOX_NAME];
-	uint8_t code;
-
 	int tfs_handle = tfs_init(NULL);
 
 	//*allocation memory
@@ -75,13 +71,14 @@ int main(int argc, char **argv) {
 
 	//* READ REQUEST
 	server_running = true;
-	char line[sizeof(uint8_t) + MAX_REQUEST];	//[ code = ? (uint8_t) ] | [ client_named_path (char[256]) | box_name(char[32]) ]
 	ssize_t ret;
+	Request req;
 	fcntl(server_fifo, F_SETFL, O_NONBLOCK) ;	//to have the read signal if the session pipe was closed
 	while (server_running) {
-		printf("end? %s\n", server_running ? "true" : "false");
+		printf("end? %s\n", (server_running ? "true" : "false"));
 		//*READ code and session_pipe
-		ret = read(server_fifo, line, sizeof(line));
+
+		ret = read(server_fifo, &req, sizeof(req));//[ code = ? (uint8_t) ] | [ client_named_path (char[256]) | box_name(char[32]) ]
 		if (ret == 0);  //*if EOF do nothing
 		else if (errno == EINTR) {
 			fprintf(stderr, "Error wile reading request.\n");
@@ -91,25 +88,11 @@ int main(int argc, char **argv) {
 			unlink(server_pipe);
 			return 1;
 		}	//read failed
+    	
 
-    	sscanf(line, "%2" SCNu8 "%s", &code, session_pipe);
-
-		//*READ box_name
-		ret = read(server_fifo, line, sizeof(line));
-		if (ret == 0);
-		else if (errno == EINTR) {
-			fprintf(stderr, "Error wile reading request.\n");
-			free(queue);
-			tfs_close(tfs_handle);
-			close(server_fifo);
-			unlink(server_pipe);
-			return 1;
-		}
-		
-    	sscanf(line, "%s" , box_name);
-		printf("end? %s\n", server_running ? "true" : "false");
-		printf("%d\n", code);
-		selector(code, session_pipe, box_name);
+		printf("code %d, pipe %s, box %s\n", req.code, req.session_pipe, req.box_name);
+		selector(req.code, req.session_pipe, req.box_name);
+		printf("went to the selector.");
 	}
 	free(queue);
 	tfs_close(tfs_handle);
@@ -119,6 +102,8 @@ int main(int argc, char **argv) {
 }
 
 void selector(uint8_t code, char *session_pipe, char *box_name) {
+
+	printf("it entered the selector\n");
 	switch (code) {
 		case R_PUB:
 			codeR_PUB(session_pipe, box_name);
@@ -252,10 +237,11 @@ void codeR_SUB(char *session_pipe,char *box_name){
 }
 
 void codeC_BOX(char *session_pipe, char *box_name){
-	int session_fifo = open(session_pipe, O_RDONLY);
+	printf("it entered the func\n");
+	int session_fifo = open(session_pipe, O_WRONLY);
 	unsigned long int size = 0;
 	if (session_fifo == -1)  {
-			fprintf(stderr, "Failed to open manager pipe (create).\n");
+			fprintf(stderr, "Failed to open manager pipe (create). %s\n", session_pipe);
 			server_running = false;
 			return;
 		}
@@ -277,6 +263,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		size += sizeof(int32_t);
 		memcpy(line + size, message, sizeof(message));
 		size += sizeof(message);
+		printf("it is going to write\n");
 		ret = write(session_fifo, line, sizeof(line));
 		if (ret < 0) {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
@@ -424,10 +411,10 @@ void codeL_BOX(char *session_pipe){
 
 	//*PRINT LINKED LIST
 	char line[sizeof(uint8_t)*2 + MAX_BOX_NAME + sizeof(uint64_t)*3 + 1]; //[ code = 8 (uint8_t) ] | [ last (uint8_t) ] | [ box_name (char[32]) ] | [ box_size (uint64_t) ] | [ n_publishers (uint64_t) ] | [ n_subscribers (uint64_t) ]
-	box aux = *head;
+	
 	uint8_t last = 0;
 	unsigned long int size = 0;
-	if (aux == NULL) {
+	if (head == NULL){
 		char box_n[MAX_BOX_NAME + 1];
 		memset(box_n, 0, sizeof(box_n));
 		last = 1;
@@ -450,30 +437,33 @@ void codeL_BOX(char *session_pipe){
 			server_running = false;
 			return;
 		}
-	}
-	while (aux != NULL) {
-		if (aux->next == NULL) last = 1;
-		uint8_t code = R_L_BOX;
-		memcpy(line + size, &code, sizeof(code));
-		size += sizeof(code);
-		memcpy(line + size, &last, sizeof(last));
-		size += sizeof(last);
-		memcpy(line + size, &aux->box_name, sizeof(aux->box_name));
-		size += sizeof(aux->box_name);
-		memcpy(line + size, &aux->box_size, sizeof(aux->box_size));
-		size += sizeof(aux->box_size);
-		memcpy(line + size, &aux->n_publishers, sizeof(aux->n_publishers));
-		size += sizeof(aux->n_publishers);
-		memcpy(line + size, &aux->n_subscribers, sizeof(aux->n_subscribers));
-		size += sizeof(aux->n_subscribers);
+	} 
+	else {
+	box aux = *head;
+		while (aux != NULL) {
+			if (aux->next == NULL) last = 1;
+			uint8_t code = R_L_BOX;
+			memcpy(line + size, &code, sizeof(code));
+			size += sizeof(code);
+			memcpy(line + size, &last, sizeof(last));
+			size += sizeof(last);
+			memcpy(line + size, &aux->box_name, sizeof(aux->box_name));
+			size += sizeof(aux->box_name);
+			memcpy(line + size, &aux->box_size, sizeof(aux->box_size));
+			size += sizeof(aux->box_size);
+			memcpy(line + size, &aux->n_publishers, sizeof(aux->n_publishers));
+			size += sizeof(aux->n_publishers);
+			memcpy(line + size, &aux->n_subscribers, sizeof(aux->n_subscribers));
+			size += sizeof(aux->n_subscribers);
 
-		ssize_t ret = write(session_fifo, line, sizeof(line));
-		if (ret < 0)  {
-			fprintf(stderr, "Server failed to write to the pipe.\n");
-			server_running = false;
-			return;
+			ssize_t ret = write(session_fifo, line, sizeof(line));
+			if (ret < 0)  {
+				fprintf(stderr, "Server failed to write to the pipe.\n");
+				server_running = false;
+				return;
+			}
+			aux = aux->next;
 		}
-		aux = aux->next;
 	}
 	
 	close(session_fifo);

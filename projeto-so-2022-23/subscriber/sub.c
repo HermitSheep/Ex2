@@ -7,10 +7,10 @@ send request to server (int argc)
 listen to the fifo for output
 print the output with "fprintf(stdout, "%s\n", message);"*/
 
-bool server_running = false;
+bool session_running = false;
 void sig_handler(int sig) {
 	if (sig == SIGINT) {
-		server_running = true;
+		session_running = true;
 	}
 	else exit(EXIT_FAILURE);
 }
@@ -64,12 +64,12 @@ int main(int argc, char **argv) {
 	ssize_t ret;
 	uint8_t code;
 	fcntl(session_fifo, F_SETFL, O_NONBLOCK) ;	//to have the read signal if the session pipe was closed
-	while (!server_running) {
+	while (!session_running) {
 		//*READ
 		ret = read(session_fifo, line, sizeof(line));
 		if (ret == 0);  //*if EOF do nothing
 		else if (errno == EAGAIN) {		//session pipe was closed
-			server_running = true;
+			session_running = true;
 			printf("Session pipe has been closed.");
 		}
 		else if (errno == EINTR){

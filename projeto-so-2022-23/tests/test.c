@@ -1,37 +1,34 @@
 #include "../utils/utility_funcs.h"
+#include "../producer-consumer/producer-consumer.h"
 
 int main () {
-    //char code_c[2];
-    uint8_t code;
-    char *instruction;
-    instruction = "create";
-    if (strcmp(instruction, "create"))  {
-        code = C_BOX;
-        printf("create\n");
-    }
-    else if (strcmp(instruction, "remove")) {
-        code = R_BOX;
-        printf("remove\n");
-    }
-    else if (strcmp(instruction, "list")) {
-        code = L_BOX;
-        printf("list\n");
-    }
-	printf("code: %d\n", code);
+	unsigned long int size = 0;
+    uint8_t code = 3;
+    char request[MAX_REQUEST]; //code (1-10) | pipe name | box name \0
 
-    char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
-	int32_t error_code = 0;
-    //char error_cod_c[2];
-	char error_message[MAX_MESSAGE];
-	//*READ
-	strcpy(line, "4-1some made up error.");
-	
-	//*PRINT LINE
-    sscanf(line, "%1" SCNu8 "%2"SCNd32 "%s", &code, &error_code, error_message);
+    char pipe[MAX_PIPE_NAME];
+    char boc[MAX_BOX_NAME];
 
-    
-    if ((int)error_code == -1)
-        fprintf(stdout, "ERROR %s\n", error_message);
-    else 
-        fprintf(stdout, "OK\n");
+    strcpy(pipe, "session_pipe");
+    strcpy(boc, "box_name");
+
+    if (strlen(pipe) <= MAX_PIPE_NAME){
+        memset(pipe + strlen(pipe), 0, sizeof(pipe) - sizeof(char)*strlen(pipe));
+    }if (strlen(boc) < MAX_BOX_NAME){
+        memset(boc + strlen(boc), 0, sizeof(boc) - sizeof(char)*strlen(boc));
+    }
+    //*FORMAT REQUEST
+    memcpy(request, &code, sizeof(code));
+    size += sizeof(code);
+    printf("request: %s\n", request);
+    strncpy(request+size, pipe, MAX_PIPE_NAME);
+    size += strlen(pipe);
+    request[size] = '\0';
+    printf("request: %s\n", request);
+
+    strncpy(request+size, boc, MAX_BOX_NAME);
+    size += strlen(boc);
+    request[size] = '\0';
+    printf("request: %s\n", request);
+
 }

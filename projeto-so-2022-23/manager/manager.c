@@ -1,5 +1,13 @@
 #include "../utils/utility_funcs.h"
 
+bool session_end = false;
+void sig_handler(int sig) {
+	if (sig == SIGINT) {
+		session_end = true;
+	}
+	else exit(EXIT_FAILURE);
+}
+
 static void print_usage() {
     fprintf(stderr, "usage: \n"
                     "   manager <register_pipe_name> create <box_name>\n"
@@ -17,6 +25,9 @@ int main(int argc, char **argv) {
 	char *session_pipe = argv[2];
     char *instruction = argv[3];
 	char *box_name = argv[4];
+
+	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);
+
 	printf("server %s session %s instruction %s box %s argc %d\n", server_pipe, session_pipe, instruction, box_name, argc);
 
     //*CREATE SESSION PIPE
@@ -34,9 +45,11 @@ int main(int argc, char **argv) {
 		return 1;
 	}
     uint8_t code;
-    if (strcmp(instruction, "create"))  code = C_BOX;
-    else if (strcmp(instruction, "remove")) code = R_BOX;
-    else if (strcmp(instruction, "list")) code = L_BOX;
+    if (strcmp(instruction, "create") == 0)  code = C_BOX;
+    else if (strcmp(instruction, "remove") == 0) code = R_BOX;
+    else if (strcmp(instruction, "list") == 0) code = L_BOX;
+
+	printf("code %d, pipe %s, box %s\n", code, session_pipe, box_name);
 	send_request(code, session_pipe, box_name, server_fifo);
 
 	printf("%d\n", code);
@@ -68,7 +81,6 @@ int main(int argc, char **argv) {
 	box aux;
 	box aux2;
 
-    bool session_end = false;
 	while (!session_end) {
 		//*READ (doesn't check for pipe closure because that's not a normal behavior here)
 		ret = read(session_fifo, line, sizeof(line));
@@ -126,5 +138,5 @@ int main(int argc, char **argv) {
 	close(session_fifo);
 	close(server_fifo);
 	unlink(session_pipe);
-    return 1;
+    return 0;
 }
