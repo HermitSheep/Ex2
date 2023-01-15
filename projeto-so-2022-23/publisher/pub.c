@@ -35,7 +35,6 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 	int server_fifo = open(server_pipe, O_WRONLY);
 	if (server_fifo == -1) {
 		fprintf(stderr,"Open server pipe failed.\n");
-		close(server_fifo);
 		close(server_pipe);
 		unlink(server_pipe);
 	}
@@ -46,7 +45,6 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 	int session_fifo = open(session_pipe, O_WRONLY);
 	if (session_fifo == -1){
 		fprintf(stderr, "Open session pipe failed.\n");
-		close(session_fifo);
 		close(session_pipe);
 		unlink(session_pipe);
 	}

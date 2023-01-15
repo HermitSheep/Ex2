@@ -35,19 +35,25 @@ int main(int argc, char **argv) {
     /*The named file already exists.*/
     if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ){
 		fprint(stderr,"Session pipe already exists.\n");
-		close(session_pipe);
-		unlink(session_pipe);
+		return; 
 
 	}
 	//*SEND REQUEST TO THE SERVER
 	int server_fifo = open(server_pipe, O_WRONLY);
-	if (server_fifo == -1) ERROR("Open server pipe failed");
+	if (server_fifo == -1){
+		fprintf(stderr, "Open server pipe failed.\n");
+		unlink(server_pipe);
+
     send_request(R_SUB, session_pipe, box_name, server_fifo);
 
 	// open session pipe for reading
 	// this waits for server to open it for reading
 	int session_fifo = open(session_pipe, O_RDONLY);
-	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+	if (session_fifo == -1){
+		fprintf(stderr, "Open session pipe failed.\n");
+		close(server_fifo);
+		unlink(session_pipe);
+	}
 
 	//* PRINT MESSAGE
 	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
@@ -66,7 +72,6 @@ int main(int argc, char **argv) {
 		}
 		else if (errno == EINTR){
 			fprint("Unexpected error while reading.\n");	//read failed
-			close(server_fifo);
 			close(session_fifo);
 			unlink(session_pipe);
 		}
