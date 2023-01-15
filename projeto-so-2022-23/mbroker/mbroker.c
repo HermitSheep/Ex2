@@ -326,13 +326,8 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		memset(message+len-1, 0, MAX_MESSAGE - len);
 		sprintf(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
 		uint8_t code = R_R_BOX;
-		memcpy(line + size, &code, sizeof(code));
-		size += sizeof(code);
-		memcpy(line + size, &(int32_t){-1}, sizeof(int32_t));
-		size += sizeof(int32_t);
-		memcpy(line + size, message, sizeof(message));
-		size += sizeof(message);
-		ret = write(session_fifo, line, sizeof(line));
+		req r = newRequest((uint8_t) code,NULL,NULL,-1, message);
+		ret = write(session_fifo, &r, sizeof(r));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -348,13 +343,8 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		len = strlen(message);
 		memset(message+len-1, 0, MAX_MESSAGE - len);
 		uint8_t code = R_R_BOX;
-		memcpy(line + size, &code, sizeof(code));
-		size += sizeof(code);
-		memcpy(line + size, &(int32_t){-1}, sizeof(int32_t));
-		size += sizeof(int32_t);
-		memcpy(line + size, message, sizeof(message));
-		size += sizeof(message);
-		ret = write(session_fifo, line, sizeof(line));
+		req req = newRequest((uint8_t) code, NULL, NULL,-1, message);
+		ret = write(session_fifo, &req, sizeof(req));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -367,13 +357,8 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		remove_box(head, box_name);	//removes box from the lit of boxes
 		memset(message, 0, MAX_MESSAGE);
 		uint8_t code = R_R_BOX;
-		memcpy(line + size, &code, sizeof(code));
-		size += sizeof(code);
-		memcpy(line + size, &(int32_t){0}, sizeof(int32_t));
-		size += sizeof(int32_t);
-		memcpy(line + size, message, sizeof(message));
-		size += sizeof(message);
-		ret = write(session_fifo, line, sizeof(line));
+		req req = newRequest((uint8_t) code, NULL, NULL,0, message);
+		ret = write(session_fifo, &req, sizeof(req));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -403,19 +388,8 @@ void codeL_BOX(char *session_pipe){
 		memset(box_n, 0, sizeof(box_n));
 		last = 1;
 		uint8_t code = R_L_BOX;
-		memcpy(line + size, &code, sizeof(code));
-		size += sizeof(code);
-		memcpy(line + size, &last, sizeof(last));
-		size += sizeof(last);
-		memcpy(line + size, box_n, sizeof(box_n));
-		size += sizeof(box_n);
-		memcpy(line + size, &(int64_t){0}, sizeof(int64_t));
-		size += sizeof(int64_t);
-		memcpy(line + size, &(int64_t){0}, sizeof(int64_t));
-		size += sizeof(int64_t);
-		memcpy(line + size, &(int64_t){0}, sizeof(int64_t));
-		size += sizeof(int64_t);
-		ssize_t ret = write(session_fifo, line, sizeof(line));
+		box new_box =newBox_b(box_n, 1, BOX_SIZE, 0, 0);
+		ssize_t ret = write(session_fifo, &new_box, sizeof(new_box));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -427,20 +401,10 @@ void codeL_BOX(char *session_pipe){
 		while (aux != NULL) {
 			if (aux->next == NULL) last = 1;
 			uint8_t code = R_L_BOX;
-			memcpy(line + size, &code, sizeof(code));
-			size += sizeof(code);
-			memcpy(line + size, &last, sizeof(last));
-			size += sizeof(last);
-			memcpy(line + size, &aux->box_name, sizeof(aux->box_name));
-			size += sizeof(aux->box_name);
-			memcpy(line + size, &aux->box_size, sizeof(aux->box_size));
-			size += sizeof(aux->box_size);
-			memcpy(line + size, &aux->n_publishers, sizeof(aux->n_publishers));
-			size += sizeof(aux->n_publishers);
-			memcpy(line + size, &aux->n_subscribers, sizeof(aux->n_subscribers));
-			size += sizeof(aux->n_subscribers);
+			aux->last =last;
 
-			ssize_t ret = write(session_fifo, line, sizeof(line));
+
+			ssize_t ret = write(session_fifo, &aux, sizeof(aux));
 			if (ret < 0)  {
 				fprintf(stderr, "Server failed to write to the pipe.\n");
 				server_running = false;
