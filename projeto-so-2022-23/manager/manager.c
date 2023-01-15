@@ -43,7 +43,6 @@ int main(int argc, char **argv) {
 	char *error_message;
 
 	uint8_t last;
-	char *box_name;
 	uint64_t box_size;
 	uint64_t n_publishers;
 	uint64_t n_subscribers;
