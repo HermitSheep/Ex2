@@ -87,7 +87,7 @@ bool remove_box(box *head, char* box_name) {
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
     size_t zero = 0; 
-    Request req; //code (1-10) | pipe name | box name \0
+    req request; //code (1-10) | pipe name | box name \0
 
     //*BACKFILL NAMES
     if (strlen(session_pipe) <= MAX_PIPE_NAME){
@@ -96,10 +96,10 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
         box_name += zero * (MAX_BOX_NAME - strlen(box_name));
     }
     //*FORMAT REQUEST
-    req.code = code;
-    strcpy(req.session_pipe, session_pipe);
-    strcpy(req.box_name, box_name);
+    request->code = code;
+    strcpy(request->session_pipe, session_pipe);
+    strcpy(request->box_name, box_name);
     //*SEND REQUEST
-    if (write(rx, &req, sizeof(req)) < 0) ERROR("Failed to send request to server.");
+    if (write(rx, &request, sizeof(request)) < 0) ERROR("Failed to send request to server.");
     return;
 }
