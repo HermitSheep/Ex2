@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	
-
+	
 	//* READ REQUEST
 	server_running = true;
 	ssize_t ret;
