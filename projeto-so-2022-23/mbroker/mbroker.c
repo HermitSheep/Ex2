@@ -389,7 +389,9 @@ void codeL_BOX(char *session_pipe){
 		last = 1;
 		uint8_t code = R_L_BOX;
 		box new_box =newBox_b(box_n, 1, BOX_SIZE, 0, 0);
-		ssize_t ret = write(session_fifo, &new_box, sizeof(new_box));
+		req r = newRequest((uint8_t) code,NULL, NULL,0,box_n);
+		r->boxa = new_box;
+		ssize_t ret = write(session_fifo, &r, sizeof(r));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -402,9 +404,10 @@ void codeL_BOX(char *session_pipe){
 			if (aux->next == NULL) last = 1;
 			uint8_t code = R_L_BOX;
 			aux->last =last;
+			req r = newRequest((uint8_t) code,NULL, NULL,0,"");
+			r->boxa = aux;
 
-
-			ssize_t ret = write(session_fifo, &aux, sizeof(aux));
+			ssize_t ret = write(session_fifo, &r, sizeof(r));
 			if (ret < 0)  {
 				fprintf(stderr, "Server failed to write to the pipe.\n");
 				server_running = false;
