@@ -309,7 +309,7 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE + 1];	//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	unsigned long int len;
-	unsigned long int size = 0;
+	//unsigned long int size = 0;
 	ssize_t ret;
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  {
@@ -404,7 +404,7 @@ void codeL_BOX(char *session_pipe){
 			if (aux->next == NULL) last = 1;
 			uint8_t code = R_L_BOX;
 			aux->last =last;
-			req r = newRequest((uint8_t) code,NULL, NULL,0,"");
+			req r = newRequest((uint8_t) code,NULL, NULL,0,NULL);
 			r->boxa = aux;
 
 			ssize_t ret = write(session_fifo, &r, sizeof(r));

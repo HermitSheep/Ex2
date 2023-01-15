@@ -63,7 +63,7 @@ typedef Request *req;
 
 box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers);
 
-req newRequest(uint8_t code, char session_pipe_name, char box_name,int32_t return_code, char error_message);
+req newRequest(uint8_t code, char *session_pipe_name, char *box_name,int32_t return_code, char *error_message);
 
 void insertion_sort(box* head, box newBox); //function to insert data in sorted position
 
