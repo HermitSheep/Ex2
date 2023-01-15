@@ -54,7 +54,8 @@ typedef struct request{
 	uint8_t code;
 	char session_pipe[MAX_PIPE_NAME];
 	char box_name[MAX_BOX_NAME];
-
+	int32_t return_code;
+	char error_message[MAX_MESSAGE];
 }Request;
 
 box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers);
