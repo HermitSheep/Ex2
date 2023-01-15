@@ -77,7 +77,7 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
     //*BACKFILL NAMES
     if (strlen(session_pipe) <= MAX_PIPE_NAME){
         session_pipe += zero * (MAX_PIPE_NAME - strlen(session_pipe));      //backfills names
-    }if (strlen(box_name)< MAX_BOX_NAME){
+    }if (strlen(box_name) < MAX_BOX_NAME){
         box_name += zero * (MAX_BOX_NAME - strlen(box_name));
     }
     //*FORMAT REQUEST
