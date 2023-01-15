@@ -8,19 +8,21 @@ static void print_usage() {
 }
 
 int main(int argc, char **argv) {
-	if (argc <3 || argc >= 5){
+	if (argc <3 || argc > 5){
         print_usage();
+		printf("%d", argc);
 		return 1;
     }
 	char *server_pipe = argv[1];
 	char *session_pipe = argv[2];
     char *instruction = argv[3];
 	char *box_name = argv[4];
+	printf("server %s session %s instruction %s box %s argc %d\n", server_pipe, session_pipe, instruction, box_name, argc);
 
     //*CREATE SESSION PIPE
     /*The named file already exists.*/
     if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ) {
-		fprintf(stderr, "Create session pipe failed, %s\n", session_pipe);
+		fprintf(stderr, "Create session pipe failed, server %s session %s instruction %s box %s\n", server_pipe, session_pipe, instruction, box_name);
 		return 1;
 	}
 

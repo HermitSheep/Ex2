@@ -25,9 +25,9 @@ int main(int argc, char **argv) {
         print_usage();
 		return 1;
 	}
-	char *server_pipe = argv[1];
-	char *session_pipe = argv[2];
-	char *box_name = argv[3];
+	char *server_pipe = argv[0];
+	char *session_pipe = argv[1];
+	char *box_name = argv[2];
 
 	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);
 
