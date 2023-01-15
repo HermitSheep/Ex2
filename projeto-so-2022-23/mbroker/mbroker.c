@@ -245,6 +245,8 @@ void codeC_BOX(char *session_pipe, char *box_name){
 			server_running = false;
 			return;
 		}
+	
+	printf("it's not the fifo\n");
 
 	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE + 1];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
@@ -252,6 +254,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 	ssize_t ret;
 	//* CREATE A BOX and verify if that already exist
 	box session_box = find_box(head, box_name);
+	printf("it's not the find box\n");
 	if (session_box != NULL) {	//box already existed
 		strcpy(message, "Caixa já existe.");
 		len = strlen(message);
