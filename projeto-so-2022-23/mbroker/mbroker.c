@@ -27,11 +27,19 @@ void codeL_BOX(char *session_pipe);
 
 box *head = NULL;	//For the head of the l list to be visible everywhere
 
+static void print_usage() {
+    fprintf(stderr, "usage: \n"
+                    "   mbroker <register_pipe_name> <max_sessions>\n");
+}
+
 int main(int argc, char **argv) {
-	if (argc != 3) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
+	if (argc != 3) {
+        print_usage();
+		return 1;
+	}
 	char *server_pipe = argv[1];
-	char *max_s = argv[2];
-	int max_session = atoi(max_s);
+	//char *max_s = argv[2];
+	//int max_session = atoi(max_s);
 
 	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);
 

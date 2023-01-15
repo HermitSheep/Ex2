@@ -10,8 +10,16 @@ send request to server (int argc)   check
 format messages
 send them to the fifo*/
 
+static void print_usage() {
+    fprintf(stderr, "usage: \n"
+                    "   pub <register_pipe> <pipe_name> <box_name>\n");
+}
+
 int main(int argc, char **argv) {// TODO check if box already has a publisher
-	if (argc != 4) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
+	if (argc != 4){
+        print_usage();
+		return 1;
+	}
 	char *server_pipe = argv[1];
 	char *session_pipe = argv[2];
 	char *box_name = argv[3];
@@ -46,9 +54,9 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 
 		len = strlen(message);
 		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len);  //(-1 is to remove the \n)
-		memcpy(line + len, code, sizeof(code));
+		memcpy(line + len, &code, sizeof(code));
 		len += sizeof(code);
-		memcpy(line + len,message,sizeof(message));
+		memcpy(line + len, message,sizeof(message));
 		len += sizeof(message);
 
 

@@ -15,8 +15,16 @@ void sig_handler(int sig) {
 	else exit(EXIT_FAILURE);
 }
 
+static void print_usage() {
+    fprintf(stderr, "usage: \n"
+                    "   sub <register_pipe> <pipe_name> <box_name>\n");
+}
+
 int main(int argc, char **argv) {
-	if (argc != 3) ERROR("Wrong input. Expected: ./pub <register_pipe> <pipe_name> <box_name>");
+	if (argc != 3){
+        print_usage();
+		return 1;
+	}
 	char *server_pipe = argv[1];
 	char *session_pipe = argv[2];
 	char *box_name = argv[3];
@@ -38,9 +46,8 @@ int main(int argc, char **argv) {
 	if (session_fifo == -1)  ERROR("Open session pipe failed.");
 
 	//* PRINT MESSAGE
-	size_t len = 1;
 	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
-	char *message;
+	char message[MAX_MESSAGE];
 	int received_messages = 0;
 	ssize_t ret;
 	uint8_t code;

@@ -67,6 +67,7 @@ int pcq_enqueue(pc_queue_t *queue, void *elem) {
 	queue->pcq_current_size ++;
 	pthread_mutex_unlock(&queue->pcq_current_size_lock);
 	pthread_mutex_unlock(&queue->pcq_tail_lock);
+	return 0;
 }
 
 void *pcq_dequeue(pc_queue_t *queue) {

@@ -7,8 +7,6 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -51,17 +49,7 @@ typedef struct box_node{	//inside name
 }BOX;	//outside name
 typedef BOX *box;	//no need to keep adding *'s
 
-box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers)
-{
-	box newBox= (box)malloc(sizeof(BOX));
-	strcpy(newBox->box_name, name);
-	newBox->last = last;
-	newBox->n_publishers = n_publishers;
-	newBox->n_subscribers = n_subscribers;
-	newBox->box_size = box_size;
-	newBox->next = NULL;
-	return newBox;
-};
+box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers);
 
 void insertion_sort(box* head, box newBox); //function to insert data in sorted position
 

@@ -4,6 +4,19 @@
 Message: format a string to the specifications in "instruções do projeto"/the proj sheet
 Finish_session: signal the client and worker thread to sleep (maybe through producer-consumer) and close 
 session fifo*/
+
+box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers)
+{
+	box newBox= (box)malloc(sizeof(BOX));
+	strcpy(newBox->box_name, name);
+	newBox->last = last;
+	newBox->n_publishers = n_publishers;
+	newBox->n_subscribers = n_subscribers;
+	newBox->box_size = box_size;
+	newBox->next = NULL;
+	return newBox;
+};
+
 void insertion_sort(box* head, box newBox)//function to insert data in sorted position
 {
 	//If linked list is empty
@@ -39,12 +52,11 @@ box find_box(box *head, char* box_name) {
 }
 
 bool remove_box(box *head, char* box_name) {
-    box aux;
+    box aux = *head;
     bool found = false;
     bool success = false;
-    aux = *head;
     if (strcmp(aux->box_name, box_name) == 0) { //if it's the first element of the list
-        head = aux->next;
+        *head = aux->next;
         success = true;
         return success;
     }
@@ -60,7 +72,7 @@ bool remove_box(box *head, char* box_name) {
 }
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
-    char zero = 0; 
+    size_t zero = 0; 
     char request[2 + MAX_REQUEST]; //code (1-10) | pipe name | box name \0
     //*BACKFILL NAMES
     if (strlen(session_pipe) <= MAX_PIPE_NAME){

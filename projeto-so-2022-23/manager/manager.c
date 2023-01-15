@@ -8,9 +8,9 @@ static void print_usage() {
 }
 
 int main(int argc, char **argv) {
-	if (argc <4 || argc > 5){
+	if (argc <3 || argc >= 5){
         print_usage();
-        ERROR("Wrong input.");
+		return 1;
     }
 	char *server_pipe = argv[1];
 	char *session_pipe = argv[2];
@@ -19,11 +19,18 @@ int main(int argc, char **argv) {
 
     //*CREATE SESSION PIPE
     /*The named file already exists.*/
-    if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ) ERROR("Session pipe already exists.");
+    if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ) {
+		fprintf(stderr, "Create session pipe failed, %s\n", session_pipe);
+		return 1;
+	}
 
 	//*SEND REQUEST TO THE SERVER
 	int server_fifo = open(server_pipe, O_WRONLY);
-	if (server_fifo == -1)  ERROR("Open server pipe failed");
+	if (server_fifo == -1){
+		fprintf(stderr, "Open server pipe failed, %s\n", server_pipe);
+		unlink(session_pipe);
+		return 1;
+	}
     uint8_t code;
     if (strcmp(instruction, "create"))  code = C_BOX;
     else if (strcmp(instruction, "remove")) code = R_BOX;
@@ -33,17 +40,21 @@ int main(int argc, char **argv) {
 	// open pipe for writing
 	// this waits for someone to open it for reading
 	int session_fifo = open(session_pipe, O_RDONLY);
-	if (session_fifo == -1)  ERROR("Open session pipe failed.");
+	if (session_fifo == -1) {
+		fprintf(stderr, "Open session pipe failed, %s\n", session_pipe);
+		close(server_fifo);
+		unlink(session_pipe);
+		return 1;
+	}
 
     //* PRINT MESSAGE
 	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	ssize_t ret;
 
 	int32_t error_code;
-	char *error_message;
+	char error_message[MAX_MESSAGE];
 
 	uint8_t last;
-	char *box_name;
 	uint64_t box_size;
 	uint64_t n_publishers;
 	uint64_t n_subscribers;
@@ -57,7 +68,13 @@ int main(int argc, char **argv) {
 	while (!session_end) {
 		//*READ (doesn't check for pipe closure because that's not a normal behavior here)
 		ret = read(session_fifo, line, sizeof(line));
-		if (ret == -1) ERROR("Failed to read from user input.");
+		if (ret == -1) {
+			fprintf(stderr, "Read from session pipe failed.\n");
+			close(server_fifo);
+			close(session_fifo);
+			unlink(session_pipe);
+			return 1;
+		}
 		
 		//*PRINT LINE
    		sscanf(line, "%1" SCNu8, &code);
@@ -68,18 +85,24 @@ int main(int argc, char **argv) {
             session_end = true;
 			
         } else {													//has to list all boxes
-			sscanf(line,  "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, &last, box_name, &box_size, n_publishers, n_subscribers);
+			sscanf(line,  "%1" SCNu8 "%s" "%4"PRIu64 "%1"PRIu64 "%1"PRIu64, &last, box_name, &box_size, &n_publishers, &n_subscribers);
 			aux = newBox_b(box_name, last, box_size, n_publishers, n_subscribers);
 			insertion_sort(head, aux);
 			if (last == 1) {
-				if (strlen(box_name) == 0) fprintf(stdout, "NO BOXES FOUND\n");
+				if (strlen(box_name) == 0) {
+					fprintf(stdout, "NO BOXES FOUND\n");
+					close(session_fifo);
+					close(server_fifo);
+					unlink(session_pipe);
+					return 1;
+				}
 				session_end = true;
-				print == true;
+				print = true;
 			}
 		}
 	}
-	if (print) {
-		aux = head;
+	if (print && head != NULL) {	//&& head != NULL is checked so the compiler doesnt sense an error
+		aux = *head;
 		aux2 = aux;
 		do {
 			fprintf(stdout, "%s %zu %zu %zu\n", aux->box_name, aux->box_size, aux->n_publishers, aux->n_subscribers);
@@ -88,6 +111,13 @@ int main(int argc, char **argv) {
 			aux2 = aux;
 		} while (aux->next == NULL);
 	}
+	else {
+			fprintf(stderr, "Box creation somehow failed.\n");
+			close(server_fifo);
+			close(session_fifo);
+			unlink(session_pipe);
+			return 1;
+		}
 
 	close(session_fifo);
 	close(server_fifo);
