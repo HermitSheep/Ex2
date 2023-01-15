@@ -202,7 +202,6 @@ void codeR_SUB(char *session_pipe,char *box_name){
 		return;
     }
 	//* PRINT MESSAGE
-	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
 	char message[MAX_MESSAGE + 1];
 	ssize_t ret;
     bool session_end = false;
@@ -221,7 +220,7 @@ void codeR_SUB(char *session_pipe,char *box_name){
 
 		//*PRINT LINE
 		uint8_t code = M_SUB;
-		req request = newRequest(code, NULL, NULL, 0, message);
+		req request = newRequest(code, NULL, NULL, 0, message);//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
 		
 		ret = write(session_fifo, request, sizeof(request));
 		if (ret < 0)  {
@@ -291,7 +290,8 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		insertion_sort(head, aux);
 
 		memset(message, 0, MAX_MESSAGE);		//create box succeeded
-		ret = write(session_fifo, &aux, sizeof(aux));
+		req request = newRequest(M_SUB, NULL, NULL, 0, message);
+		ret = write(session_fifo, &request, sizeof(request));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -304,7 +304,6 @@ void codeC_BOX(char *session_pipe, char *box_name){
 }
 
 void codeR_BOX(char *session_pipe,char *box_name){
-	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE + 1];	//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	unsigned long int len;
 	ssize_t ret;
@@ -315,15 +314,13 @@ void codeR_BOX(char *session_pipe,char *box_name){
 			return;
 		}
 
-	//*Box never existed to begin with
 	box session_box = find_box(head, box_name);
-	if (session_box == NULL) {	//box doesn't exist to begin with
+	if (session_box == NULL) {//*Box never existed to begin with
 		strcpy(message, "Caixa não existe.");
 		len = strlen(message);
 		memset(message+len-1, 0, MAX_MESSAGE - len);
-		sprintf(line, "%1" SCNu8 "%2"PRIu32 "%s", R_C_BOX, (int32_t) -1, message);
 		uint8_t code = R_R_BOX;
-		req r = newRequest((uint8_t) code,NULL,NULL,-1, message);
+		req r = newRequest((uint8_t) code,NULL,NULL,-1, message);//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 		ret = write(session_fifo, &r, sizeof(r));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
