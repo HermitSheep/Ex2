@@ -49,6 +49,14 @@ typedef struct box_node{	//inside name
 }BOX;	//outside name
 typedef BOX *box;	//no need to keep adding *'s
 
+
+typedef struct request{
+	uint8_t code;
+	char session_pipe[MAX_PIPE_NAME];
+	char box_name[MAX_BOX_NAME];
+
+}Request;
+
 box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers);
 
 void insertion_sort(box* head, box newBox); //function to insert data in sorted position
