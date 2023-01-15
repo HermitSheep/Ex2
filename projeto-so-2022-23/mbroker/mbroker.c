@@ -207,7 +207,6 @@ void codeR_SUB(char *session_pipe,char *box_name){
 	ssize_t ret;
     bool session_end = false;
 	unsigned long int len;
-	unsigned long int size = 0;
 	while (!session_end) {
 		//*READ
 		ret = tfs_read(box_handle, message, sizeof(message));
@@ -222,10 +221,9 @@ void codeR_SUB(char *session_pipe,char *box_name){
 
 		//*PRINT LINE
 		uint8_t code = M_SUB;
-		memcpy(line + size, &code, sizeof(code));
-		size += sizeof(code);
-		memcpy(line + size, message, sizeof(message));
-		ret = write(session_fifo, line, sizeof(line));
+		req request = newRequest(code, NULL, NULL, 0, message);
+		
+		ret = write(session_fifo, request, sizeof(request));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -247,7 +245,6 @@ void codeC_BOX(char *session_pipe, char *box_name){
 	
 	printf("it's not the fifo\n");
 
-	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE + 1];	//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	unsigned long int len;
 	ssize_t ret;
@@ -259,7 +256,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		len = strlen(message);
 		memset(message+len-1, 0, MAX_MESSAGE - len);
 		uint8_t code = R_R_BOX;
-		req request = newRequest((uint8_t) code, NULL, NULL,-1, message);
+		req request = newRequest((uint8_t) code, NULL, NULL,-1, message);//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 		printf("it is going to write\n");
 		ret = write(session_fifo, &request, sizeof(request));
 		if (ret < 0) {
@@ -311,7 +308,6 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	char line[sizeof(uint8_t) + sizeof(int32_t) + MAX_MESSAGE + 1];	//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	unsigned long int len;
-	//unsigned long int size = 0;
 	ssize_t ret;
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  {
@@ -345,8 +341,8 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		len = strlen(message);
 		memset(message+len-1, 0, MAX_MESSAGE - len);
 		uint8_t code = R_R_BOX;
-		req req = newRequest((uint8_t) code, NULL, NULL,-1, message);
-		ret = write(session_fifo, &req, sizeof(req));
+		req request = newRequest((uint8_t) code, NULL, NULL,-1, message);
+		ret = write(session_fifo, &request, sizeof(request));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -359,8 +355,8 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		remove_box(head, box_name);	//removes box from the lit of boxes
 		memset(message, 0, MAX_MESSAGE);
 		uint8_t code = R_R_BOX;
-		req req = newRequest((uint8_t) code, NULL, NULL,0, message);
-		ret = write(session_fifo, &req, sizeof(req));
+		req request = newRequest((uint8_t) code, NULL, NULL,0, message);
+		ret = write(session_fifo, &request, sizeof(request));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
