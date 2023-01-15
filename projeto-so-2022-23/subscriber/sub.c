@@ -66,7 +66,8 @@ int main(int argc, char **argv) {
 	fcntl(session_fifo, F_SETFL, O_NONBLOCK) ;	//to have the read signal if the session pipe was closed
 	while (!session_running) {
 		//*READ
-		ret = read(session_fifo, line, sizeof(line));
+		req r ;
+		ret = read(session_fifo, &r, sizeof(r));
 		if (ret == 0);  //*if EOF do nothing
 		else if (errno == EAGAIN) {		//session pipe was closed
 			session_running = true;
@@ -78,10 +79,11 @@ int main(int argc, char **argv) {
 			unlink(session_pipe);
 		}
 		//*PRINT LINE
-    	sscanf(line, "%2" SCNu8 "%s", &code, message);
+    	code =r->code;
+		strcpy(message,r->error_message);
 
 		fprintf(stdout, "%s\n", message);
-		//memcpy(line + len, message, sizeof(message));
+		
 		
 		received_messages++;
 	}

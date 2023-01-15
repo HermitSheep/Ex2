@@ -75,16 +75,13 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 
 		len = strlen(message);
 		if (len < MAX_MESSAGE) memset(message+len-1, '\0', MAX_MESSAGE - len);  //(-1 is to remove the \n)
-		memcpy(line + len, &code, sizeof(code));
-		len += sizeof(code);
-		memcpy(line + len, message,sizeof(message));
-		len += sizeof(message);
+		req r = newRequest((uint8_t) code, NULL, NULL,NULL, message);
 
 
 
 
 		//*SEND LINE TO SERVER
-		ssize_t ret = write(session_fifo, line, len);
+		ssize_t ret = write(session_fifo, &r, len);
 		if (ret < 0)  ERROR("Write failed.");
 	}
 
