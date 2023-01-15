@@ -58,15 +58,13 @@ int main(int argc, char **argv) {
 	}
 
 	//* PRINT MESSAGE
-	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
 	char message[MAX_MESSAGE];
 	int received_messages = 0;
 	ssize_t ret;
-	uint8_t code;
 	fcntl(session_fifo, F_SETFL, O_NONBLOCK) ;	//to have the read signal if the session pipe was closed
 	while (!session_running) {
 		//*READ
-		req r ;
+		Request r ;	//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
 		ret = read(session_fifo, &r, sizeof(r));
 		if (ret == 0);  //*if EOF do nothing
 		else if (errno == EAGAIN) {		//session pipe was closed
@@ -79,8 +77,7 @@ int main(int argc, char **argv) {
 			unlink(session_pipe);
 		}
 		//*PRINT LINE
-    	code =r->code;
-		strcpy(message,r->error_message);
+		strcpy(message,r.error_message);
 
 		fprintf(stdout, "%s\n", message);
 		
