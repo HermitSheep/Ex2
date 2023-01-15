@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	
-	
+
 	//* READ REQUEST
 	server_running = true;
 	ssize_t ret;
@@ -96,36 +96,39 @@ int main(int argc, char **argv) {
 	}
 	free(queue);
 	tfs_close(tfs_handle);
-	close(server_fifo);
-	unlink(server_pipe);
+	close(server_fifo);			//closes so there are no communications conflicts
+	unlink(server_pipe);		//delete this type of FIFO pipe
     return -1;
 }
 
+//Choose according to the code that appears in the request
 void selector(uint8_t code, char *session_pipe, char *box_name) {
 
 	printf("it entered the selector\n");
 	switch (code) {
-		case R_PUB:
+		case R_PUB:		//[ code = 1 (uint8_t) ] 
 			codeR_PUB(session_pipe, box_name);
 			break;
-		case R_SUB:
+		case R_SUB:		//[ code = 2 (uint8_t) ] 
 			codeR_SUB(session_pipe, box_name);
 			break;
-		case C_BOX:
+		case C_BOX:		//[ code = 3 (uint8_t) ] 
 			codeC_BOX(session_pipe, box_name);
 			break;
-		case R_BOX:
+		case R_BOX:		//[ code = 5 (uint8_t) ] 
 			codeR_BOX(session_pipe, box_name);
 			break;
-		case L_BOX:
+		case L_BOX:		//[ code = 7 (uint8_t) ] 
 			codeL_BOX(session_pipe);
 			break;
-		default:
+		default:		//not excepted code
 			fprintf(stderr, "Inexistent code selected.\n");
 			server_running = false;
 			break;
 	}
 }
+
+//[ code = 1 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]
 
 void codeR_PUB(char *session_pipe, char *box_name) {
 	int session_fifo = open(session_pipe, O_WRONLY);
@@ -134,10 +137,11 @@ void codeR_PUB(char *session_pipe, char *box_name) {
 			server_running = false;
 			return;
 		}
-
+	//Checks if this box_name already exists and if it is possible
 	box session_box = find_box(head, box_name);
     
-    if (session_box->n_publishers == 1) {    //there cant be more than one pub to the same box
+	//It is only possible to have one publisher in each box
+    if (session_box->n_publishers == 1) {    //there can´t be more than one pub to the same box
         close (session_fifo);
 		return;
     }
@@ -157,7 +161,7 @@ void codeR_PUB(char *session_pipe, char *box_name) {
     char message[MAX_MESSAGE];
     bool session_end = false;
 	fcntl(session_fifo, F_SETFL, O_NONBLOCK) ;
-	while (!session_end) {
+	while (!session_end) {							//read everything that is in fifo and then close 
 		//*READ
 		ret = read(session_fifo, line, sizeof(line));
 		if (ret == 0);  //*if EOF do nothing
@@ -182,6 +186,9 @@ void codeR_PUB(char *session_pipe, char *box_name) {
 	close(session_fifo);
 }
 
+
+//[ code = 2 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]
+
 void codeR_SUB(char *session_pipe,char *box_name){
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  {
@@ -190,6 +197,7 @@ void codeR_SUB(char *session_pipe,char *box_name){
 			return;
 		}
 
+	//Checks if this box_name already exists and if it is possible
 	box session_box = find_box(head, box_name);
     
     if (session_box->n_subscribers <= 0) {    //need subs /sub to the same box
@@ -219,8 +227,8 @@ void codeR_SUB(char *session_pipe,char *box_name){
 		if (len < MAX_MESSAGE) memset(message+len-1, 0, MAX_MESSAGE - len); 
 
 		//*PRINT LINE
-		uint8_t code = M_SUB;
-		Request request = newRequest(code, NULL, NULL, 0, message);//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
+		uint8_t code = M_SUB;					
+		Request request = newRequest(code, NULL, NULL, 0, message);					//[ code = 10 (uint8_t) ] | [ message (char[1024]) ]
 		
 		ret = write(session_fifo, &request, sizeof(request));
 		if (ret < 0)  {
@@ -233,6 +241,7 @@ void codeR_SUB(char *session_pipe,char *box_name){
 	close(session_fifo);
 }
 
+//[ code = 3 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]
 void codeC_BOX(char *session_pipe, char *box_name){
 	printf("it entered the func\n");
 	int session_fifo = open(session_pipe, O_WRONLY);
@@ -247,6 +256,7 @@ void codeC_BOX(char *session_pipe, char *box_name){
 	char message[MAX_MESSAGE];
 	unsigned long int len;
 	ssize_t ret;
+
 	//* CREATE A BOX and verify if that already exist
 	box session_box = find_box(head, box_name);
 	printf("it's not the find box\n");
@@ -255,9 +265,11 @@ void codeC_BOX(char *session_pipe, char *box_name){
 		len = strlen(message);
 		memset(message+len-1, 0, MAX_MESSAGE - len);
 		uint8_t code = R_R_BOX;
+
+		//create a request using struct "Request"
 		Request request = newRequest((uint8_t) code, NULL, NULL,-1, message);//[ code = 4 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 		printf("it is going to write\n");
-		ret = write(session_fifo, &request, sizeof(request));
+		ret = write(session_fifo, &request, sizeof(request));						//write in session_fifo if request id possible or not to be there
 		if (ret < 0) {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
 			server_running = false;
@@ -303,6 +315,8 @@ void codeC_BOX(char *session_pipe, char *box_name){
 	ERROR("Something went drastically wrong in server create box.");
 }
 
+
+//[ code = 5 (uint8_t) ] | [ client_named_pipe_path (char[256]) ] | [ box_name (char[32]) ]
 void codeR_BOX(char *session_pipe,char *box_name){
 	char message[MAX_MESSAGE];
 	unsigned long int len;
@@ -320,7 +334,7 @@ void codeR_BOX(char *session_pipe,char *box_name){
 		len = strlen(message);
 		memset(message+len-1, 0, MAX_MESSAGE - len);
 		uint8_t code = R_R_BOX;
-		Request r = newRequest((uint8_t) code,NULL,NULL,-1, message);//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
+		Request r = newRequest((uint8_t) code,NULL,NULL,-1, message);		//[ code = 6 (uint8_t) ] | [ return_code (int32_t) ] | [ error_message (char[1024]) ]
 		ret = write(session_fifo, &r, sizeof(r));
 		if (ret < 0)  {
 			fprintf(stderr, "Server failed to write to the pipe.\n");
@@ -364,6 +378,7 @@ void codeR_BOX(char *session_pipe,char *box_name){
 	ERROR("Something went drastically wrong in server remove box.");
 }
 
+//[ code = 7 (uint8_t) ] | [ client_named_pipe_path (char[256]) ]
 void codeL_BOX(char *session_pipe){
 	int session_fifo = open(session_pipe, O_RDONLY);
 	if (session_fifo == -1)  {
