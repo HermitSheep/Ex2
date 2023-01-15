@@ -49,7 +49,6 @@ int main(int argc, char **argv) {
     else if (strcmp(instruction, "remove") == 0) code = R_BOX;
     else if (strcmp(instruction, "list") == 0) code = L_BOX;
 
-	printf("code %d, pipe %s, box %s\n", code, session_pipe, box_name);
 	send_request(code, session_pipe, box_name, server_fifo);
 
 	printf("%d\n", code);
