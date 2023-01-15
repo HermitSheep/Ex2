@@ -381,18 +381,15 @@ void codeL_BOX(char *session_pipe){
 			return;
 		}
 
-	//*PRINT LINKED LIST
-	char line[sizeof(uint8_t)*2 + MAX_BOX_NAME + sizeof(uint64_t)*3 + 1]; //[ code = 8 (uint8_t) ] | [ last (uint8_t) ] | [ box_name (char[32]) ] | [ box_size (uint64_t) ] | [ n_publishers (uint64_t) ] | [ n_subscribers (uint64_t) ]
-	
+	//*PRINT LINKED LIST	
 	uint8_t last = 0;
-	unsigned long int size = 0;
 	if (head == NULL){
 		char box_n[MAX_BOX_NAME + 1];
 		memset(box_n, 0, sizeof(box_n));
 		last = 1;
 		uint8_t code = R_L_BOX;
 		box new_box =newBox_b(box_n, 1, BOX_SIZE, 0, 0);
-		req r = newRequest((uint8_t) code,NULL, NULL,0,box_n);
+		req r = newRequest((uint8_t) code,NULL, NULL,0,box_n);//[ code = 8 (uint8_t) ] | [ last (uint8_t) ] | [ box_name (char[32]) ] | [ box_size (uint64_t) ] | [ n_publishers (uint64_t) ] | [ n_subscribers (uint64_t) ]
 		r->boxa = new_box;
 		ssize_t ret = write(session_fifo, &r, sizeof(r));
 		if (ret < 0)  {
