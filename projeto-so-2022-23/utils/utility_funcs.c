@@ -37,9 +37,12 @@ void insertion_sort(box* head, box newBox)//function to insert data in sorted po
 }
 
 box find_box(box *head, char* box_name) {
-    //Encontra a celula com o elemento procurado
+    //Encontra a celula com o elemento procurado, devolve NULL se não encontrar
     box aux;
     bool found = false;
+    if (head == NULL) {
+        return NULL;
+    }
     aux = *head;
     while(!found && aux != NULL){
         if(strcmp(aux->box_name, box_name)) 
@@ -73,7 +76,8 @@ bool remove_box(box *head, char* box_name) {
 
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
     size_t zero = 0; 
-    char request[2 + MAX_REQUEST]; //code (1-10) | pipe name | box name \0
+    Request req; //code (1-10) | pipe name | box name \0
+
     //*BACKFILL NAMES
     if (strlen(session_pipe) <= MAX_PIPE_NAME){
         session_pipe += zero * (MAX_PIPE_NAME - strlen(session_pipe));      //backfills names
@@ -81,8 +85,10 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
         box_name += zero * (MAX_BOX_NAME - strlen(box_name));
     }
     //*FORMAT REQUEST
-    sprintf(request, "%d%s%s", code, session_pipe, box_name);
+    req.code = code;
+    strcpy(req.session_pipe, session_pipe);
+    strcpy(req.box_name, box_name);
     //*SEND REQUEST
-    if (write(rx, request, sizeof(request)) < 0) ERROR("Failed to send request to server.");
+    if (write(rx, &req, sizeof(req)) < 0) ERROR("Failed to send request to server.");
     return;
 }

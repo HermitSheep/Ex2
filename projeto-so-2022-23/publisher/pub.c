@@ -10,6 +10,14 @@ send request to server (int argc)   check
 format messages
 send them to the fifo*/
 
+bool session_end = false;
+void sig_handler(int sig) {
+	if (sig == SIGINT) {
+		session_end = true;
+	}
+	else exit(EXIT_FAILURE);
+}
+
 static void print_usage() {
     fprintf(stderr, "usage: \n"
                     "   pub <register_pipe> <pipe_name> <box_name>\n");
@@ -25,6 +33,9 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 	char *box_name = argv[3];
 	//*CREATE SESSION PIPE
     /*The named file already exists.*/
+
+	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);
+
     if (mkfifo(session_pipe, 0640) == -1 && errno == EEXIST ){
 		fprintf(stderr, "Session pipe already exists.\n");
 		return 1;
@@ -52,7 +63,6 @@ int main(int argc, char **argv) {// TODO check if box already has a publisher
 	size_t len = 1;
 	char line[sizeof(uint8_t) + MAX_MESSAGE];	//[ code = 9 (uint8_t) ] | [ message (char[1024]) ]
 	char message[MAX_MESSAGE];
-	bool session_end = false;
 	while (!session_end) {
 		//*PLACE CODE
 		uint8_t code = M_PUB;

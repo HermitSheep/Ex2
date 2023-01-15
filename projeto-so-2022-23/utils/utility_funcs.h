@@ -20,7 +20,7 @@
 #define MAX_PIPE_NAME 256 + 1
 #define MAX_BOX_NAME 32 +1
 #define MAX_MESSAGE 1024 +1     //for normal and error messages
-#define MAX_REQUEST MAX_BOX_NAME+MAX_FILE_NAME
+#define MAX_REQUEST sizeof(uint8_t)+MAX_BOX_NAME+MAX_PIPE_NAME
 #define BOX_SIZE (uint64_t) 1024 
 
 
