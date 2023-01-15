@@ -50,7 +50,7 @@ typedef struct box_node{	//inside name
 typedef BOX *box;	//no need to keep adding *'s
 
 
-typedef struct request{
+typedef struct request{		//inside name
 	uint8_t code;
 	char session_pipe[MAX_PIPE_NAME];
 	char box_name[MAX_BOX_NAME];

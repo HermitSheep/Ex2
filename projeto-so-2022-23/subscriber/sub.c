@@ -8,7 +8,7 @@ listen to the fifo for output
 print the output with "fprintf(stdout, "%s\n", message);"*/
 
 bool session_running = false;
-void sig_handler(int sig) {
+void sig_handler(int sig) {			//itś usufully when we use signals for control-C
 	if (sig == SIGINT) {
 		session_running = true;
 	}
@@ -21,7 +21,7 @@ static void print_usage() {
 }
 
 int main(int argc, char **argv) {
-	if (argc != 3){
+	if (argc != 3){		//only 3 paramethers that subscriber needs
         print_usage();
 		return 1;
 	}
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 	char *session_pipe = argv[2];
 	char *box_name = argv[3];
 
-	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);
+	if (signal(SIGINT, sig_handler) == SIG_ERR) exit(EXIT_SUCCESS);	
 
 	//*CREATE SESSION PIPE
     /*The named file already exists.*/
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 		received_messages++;
 	}
 
-	fprintf(stdout, "%d messages  were received.\n", received_messages);
+	fprintf(stdout, "%d messages  were received.\n", received_messages);			//it´s work
 
 	close(session_fifo);
 	close(server_fifo);

@@ -5,7 +5,7 @@ Message: format a string to the specifications in "instruções do projeto"/the 
 Finish_session: signal the client and worker thread to sleep (maybe through producer-consumer) and close 
 session fifo*/
 
-box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers)
+box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers, uint64_t n_subscribers)        //constructor for newBox
 {
 	box newBox= (box)malloc(sizeof(BOX));
 	strcpy(newBox->box_name, name);
@@ -17,7 +17,7 @@ box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers,
 	return newBox;
 };
 
-Request newRequest(uint8_t code, char *session_pipe_name, char *box_name, int32_t return_code, char *error_message) {
+Request newRequest(uint8_t code, char *session_pipe_name, char *box_name, int32_t return_code, char *error_message) {      //constructor for newRequest    
     Request newrequest;
     strcpy(newrequest.session_pipe, session_pipe_name);
     strcpy(newrequest.box_name, box_name);
@@ -28,7 +28,7 @@ Request newRequest(uint8_t code, char *session_pipe_name, char *box_name, int32_
 }
 
 
-void insertion_sort(box* head, box newBox)//function to insert data in sorted position
+void insertion_sort(box* head, box newBox)      //function to insert data in sorted position
 {
 	//If linked list is empty
 	if (*head == NULL || strcmp((*head)->box_name, newBox->box_name) >= 0)
@@ -48,7 +48,7 @@ void insertion_sort(box* head, box newBox)//function to insert data in sorted po
 }
 
 box find_box(box *head, char* box_name) {
-    //Encontra a celula com o elemento procurado, devolve NULL se não encontrar
+    //return NULL if don´t find an element wanted
     box aux;
     bool found = false;
     if (head == NULL) {
@@ -65,6 +65,7 @@ box find_box(box *head, char* box_name) {
     else return NULL;
 }
 
+//Function that removes an element in list of boxes
 bool remove_box(box *head, char* box_name) {
     box aux = *head;
     bool found = false;
@@ -85,6 +86,7 @@ bool remove_box(box *head, char* box_name) {
     return success;
 }
 
+//Function that help me to verify if the parametrs are correct, if not concatenates "\0" to the maximum that the char can have
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
     size_t zero = 0; 
 
@@ -98,7 +100,7 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
 	printf("code %d, pipe %s, box %s\n", code, session_pipe, box_name);
     
     //*FORMAT REQUEST
-    Request request = newRequest(code, session_pipe, box_name, 0, NULL); //code (1-10) | pipe name | box name \0
+    Request request = newRequest(code, session_pipe, box_name, 0, NULL);                        //code (1-10) | pipe name | box name \0
 	printf("code %d, pipe %s, box %s\n", request.code, request.session_pipe, request.box_name);
 
     //*SEND REQUEST
