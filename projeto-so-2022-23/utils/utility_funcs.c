@@ -17,14 +17,17 @@ box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers,
 	return newBox;
 };
 
-Request newRequest(uint8_t code, char *session_pipe_name, char *box_name, int32_t return_code, char *error_message) {      //constructor for newRequest    
-    Request newrequest;
-    strcpy(newrequest.session_pipe, session_pipe_name);
-    strcpy(newrequest.box_name, box_name);
-    newrequest.return_code = return_code;
-    newrequest.code = code;
-    strcpy(newrequest.error_message, error_message);
-    return newrequest;
+Request newRequest(uint8_t code, char *session_pipe_name, char *box_name, int32_t return_code, char *error_message) {
+    Request request = {0};
+    request.code = code;
+    strncpy(request.session_pipe, session_pipe_name, MAX_PIPE_NAME-1);
+    request.session_pipe[MAX_PIPE_NAME-1] = '\0';
+    strncpy(request.box_name, box_name, MAX_BOX_NAME-1);
+    request.box_name[MAX_BOX_NAME-1] = '\0';
+    request.return_code = return_code;
+    strncpy(request.error_message, error_message, MAX_MESSAGE-1); 
+    request.error_message[MAX_MESSAGE-1] = '\0';
+    return request;
 }
 
 
@@ -88,19 +91,19 @@ bool remove_box(box *head, char* box_name) {
 
 //Function that help me to verify if the parametrs are correct, if not concatenates "\0" to the maximum that the char can have
 void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   //rx -> server file indicator
-    size_t zero = 0; 
-
     //*BACKFILL NAMES
 	printf("code %d, pipe %s, box %s\n", code, session_pipe, box_name);
-    if (strlen(session_pipe) <= MAX_PIPE_NAME){
-        session_pipe += zero * (MAX_PIPE_NAME - strlen(session_pipe) - 1);      //backfills names
-    }if (strlen(box_name) < MAX_BOX_NAME){
-        box_name += zero * (MAX_BOX_NAME - strlen(box_name) - 1);
-    }
+if (strlen(session_pipe) < MAX_PIPE_NAME){
+    memset(session_pipe + strlen(session_pipe), 0, MAX_PIPE_NAME - strlen(session_pipe));
+}
+if (strlen(box_name) < MAX_BOX_NAME){
+    memset(box_name + strlen(box_name), 0, MAX_BOX_NAME - strlen(box_name));
+}
 	printf("code %d, pipe %s, box %s\n", code, session_pipe, box_name);
     
     //*FORMAT REQUEST
-    Request request = newRequest(code, session_pipe, box_name, 0, NULL);                        //code (1-10) | pipe name | box name \0
+    Request request = newRequest(code, session_pipe, box_name, 0, NULL); //code (1-10) | pipe name | box name \0
+    memset(request.error_message, 0, MAX_MESSAGE);
 	printf("code %d, pipe %s, box %s\n", request.code, request.session_pipe, request.box_name);
 
     //*SEND REQUEST

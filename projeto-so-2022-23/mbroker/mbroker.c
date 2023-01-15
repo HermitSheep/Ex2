@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	//* READ REQUEST
 	server_running = true;
 	ssize_t ret;
-	Request request;
+	Request request = {0};
 	fcntl(server_fifo, F_SETFL, O_NONBLOCK) ;	//to have the read signal if the session pipe was closed
 	while (server_running) {
 		printf("end? %s\n", (server_running ? "true" : "false"));
@@ -156,14 +156,14 @@ void codeR_PUB(char *session_pipe, char *box_name) {
     
     //*WRITE MESSAGE
 	ssize_t ret;
-	char line[sizeof(uint8_t) + MAX_MESSAGE + 1];	//[ code = 9 (uint8_t) ] | [ message (char[1024]) ]
 	uint8_t code;
     char message[MAX_MESSAGE];
     bool session_end = false;
 	fcntl(session_fifo, F_SETFL, O_NONBLOCK) ;
+	Request request = {0};//[ code = 9 (uint8_t) ] | [ message (char[1024]) ]
 	while (!session_end) {							//read everything that is in fifo and then close 
 		//*READ
-		ret = read(session_fifo, line, sizeof(line));
+		ret = read(session_fifo, &request, sizeof(request));
 		if (ret == 0);  //*if EOF do nothing
 		else if (errno == EAGAIN) {
 			session_end = true;
@@ -175,11 +175,8 @@ void codeR_PUB(char *session_pipe, char *box_name) {
 			return;
 		}
 
-        //*INTERPRET
-    	sscanf(line, "%2" SCNu8 "%s", &code, message);
-
         //*WRITE TO BOX
-		tfs_write(box_handle, message, strlen(message) + 1);
+		tfs_write(box_handle, request.error_message, strlen(request.error_message));
     }
 	tfs_close(box_handle);
 	session_box->n_publishers = 0;
