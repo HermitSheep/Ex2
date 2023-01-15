@@ -89,14 +89,17 @@ void send_request(uint8_t code, char *session_pipe, char *box_name, int rx) {   
     size_t zero = 0; 
 
     //*BACKFILL NAMES
+	printf("code %d, pipe %s, box %s\n", code, session_pipe, box_name);
     if (strlen(session_pipe) <= MAX_PIPE_NAME){
-        session_pipe += zero * (MAX_PIPE_NAME - strlen(session_pipe));      //backfills names
+        session_pipe += zero * (MAX_PIPE_NAME - strlen(session_pipe) - 1);      //backfills names
     }if (strlen(box_name) < MAX_BOX_NAME){
-        box_name += zero * (MAX_BOX_NAME - strlen(box_name));
+        box_name += zero * (MAX_BOX_NAME - strlen(box_name) - 1);
     }
+	printf("code %d, pipe %s, box %s\n", code, session_pipe, box_name);
     
     //*FORMAT REQUEST
     Request request = newRequest(code, session_pipe, box_name, 0, NULL); //code (1-10) | pipe name | box name \0
+	printf("code %d, pipe %s, box %s\n", request.code, request.session_pipe, request.box_name);
 
     //*SEND REQUEST
     if (write(rx, &request, sizeof(request)) < 0) ERROR("Failed to send request to server.");
