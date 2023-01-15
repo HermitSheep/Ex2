@@ -17,7 +17,7 @@ box newBox_b(char *name, uint8_t last, uint64_t box_size, uint64_t n_publishers,
 	return newBox;
 };
 
-req newRequest(uint8_t code, char *session_pipe_name[MAX_BOX_NAME], char *box_name[MAX_BOX_NAME],int32_t return_code, char *error_message[MAX_MESSAGE]){
+req newRequest(uint8_t code, char *session_pipe_name, char *box_name,int32_t return_code, char *error_message){
     req newrequest;
     strcpy(newrequest->session_pipe, session_pipe_name);
     strcpy(newrequest->box_name, box_name);
