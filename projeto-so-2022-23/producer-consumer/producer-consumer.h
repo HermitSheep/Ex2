@@ -9,29 +9,28 @@
 // implementation
 
 typedef struct {
-    void **pcq_buffer;                                              //request
+    void **pcq_buffer; // request
     size_t pcq_capacity;
 
-    pthread_mutex_t pcq_current_size_lock;          //queue lock
+    pthread_mutex_t pcq_current_size_lock; // queue lock
     size_t pcq_current_size;
 
-    pthread_mutex_t pcq_head_lock;                       //first element lock
+    pthread_mutex_t pcq_head_lock; // first element lock
     size_t pcq_head;
 
-    pthread_mutex_t pcq_tail_lock;                          //last element lock
+    pthread_mutex_t pcq_tail_lock; // last element lock
     size_t pcq_tail;
 
-    pthread_mutex_t pcq_pusher_condvar_lock;        //pushing operation
+    pthread_mutex_t pcq_pusher_condvar_lock; // pushing operation
     pthread_cond_t pcq_pusher_condvar;
 
-    pthread_mutex_t pcq_popper_condvar_lock;        //poping operation
+    pthread_mutex_t pcq_popper_condvar_lock; // poping operation
     pthread_cond_t pcq_popper_condvar;
 } pc_queue_t;
 
-
-//pthread_cond_t bufferCheio = PTHREAD_COND_INITIALIZER;
-//pthread_cond_t msgparaLer = PTHREAD_COND_INITIALIZER;
-//pthread_mutex_t semExMut = PTHREAD_MUTEX_INITIALIZER;
+// pthread_cond_t bufferCheio = PTHREAD_COND_INITIALIZER;
+// pthread_cond_t msgparaLer = PTHREAD_COND_INITIALIZER;
+// pthread_mutex_t semExMut = PTHREAD_MUTEX_INITIALIZER;
 
 // pcq_create: create a queue, with a given (fixed) capacity
 //
@@ -51,7 +50,8 @@ int pcq_enqueue(pc_queue_t *queue, void *elem);
 
 // pcq_dequeue: remove an element from the back of the queue
 //
-// If the queue is empty, sleep until the queue has an element  //?shouldn't it do nothing instead?
+// If the queue is empty, sleep until the queue has an element  //?shouldn't it
+// do nothing instead?
 void *pcq_dequeue(pc_queue_t *queue);
 
 #endif // __PRODUCER_CONSUMER_H__
